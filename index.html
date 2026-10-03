@@ -1,0 +1,1532 @@
+<!DOCTYPE html>
+<html lang="th" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>บันทึกวันทำงาน</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans Thai"', 'Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { 
+            font-family: 'Noto Sans Thai', 'Inter', sans-serif; 
+            background-color: #f1f5f9;
+        }
+
+        .liquid-glass {
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 4px 20px -2px rgba(14, 165, 233, 0.05);
+        }
+
+        .liquid-glass-card {
+            background: #ffffff;
+            border: 1px solid rgba(226, 232, 240, 0.9);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .liquid-glass-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px -4px rgba(14, 165, 233, 0.1);
+        }
+
+        .cal-cell {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            transition: border-color 0.15s ease;
+        }
+        
+        .cal-cell-active {
+            background: #f0fdfa;
+        }
+
+        .cal-cell:hover {
+            border-color: #0284c7 !important;
+            z-index: 10;
+        }
+
+        .btn-act {
+            transition: transform 0.1s ease, background-color 0.15s ease;
+        }
+        .btn-act:active {
+            transform: scale(0.97);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.02); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 99px; }
+
+        .summary-card-bg {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            border-radius: 1.5rem;
+        }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen pb-6 antialiased selection:bg-sky-400 selection:text-white relative flex flex-col justify-between">
+
+    <!-- Header Navigation -->
+    <header class="sticky top-0 z-30 liquid-glass border-b border-slate-200/80 w-full">
+        <div class="w-full px-4 sm:px-8 py-3.5 flex justify-between items-center">
+            <div class="flex items-center space-x-3.5">
+                <div class="bg-sky-600 p-2.5 rounded-2xl shadow-md flex items-center justify-center text-white">
+                    <i class="fa-solid fa-calculator text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-800">
+                        ระบบลงเวลาทำงานและคำนวณค่าแรง
+                    </h1>
+                    <p class="text-xs text-slate-500 font-medium hidden sm:block">Designed & Developed by PopTeezC</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-3">
+                <button onclick="openSettingsModal()" class="btn-act px-4 py-2.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-2xl transition flex items-center gap-2 text-sm font-medium shadow-xs">
+                    <i class="fa-solid fa-sliders text-sky-600 text-base"></i>
+                    <span class="hidden sm:inline">ตั้งค่าอัตราค่าแรง</span>
+                </button>
+                <button onclick="openBackupModal()" class="btn-act px-4 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-2xl transition flex items-center gap-2 text-sm font-medium shadow-md shadow-sky-600/20">
+                    <i class="fa-solid fa-cloud-arrow-down text-sky-100 text-base"></i>
+                    <span class="hidden sm:inline">สำรอง/นำเข้า</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="w-full px-3 sm:px-8 mt-4 space-y-4 relative z-10 flex-grow flex flex-col justify-between">
+
+        <!-- Controls Bar -->
+        <div class="liquid-glass rounded-3xl p-4 flex flex-col lg:flex-row items-center justify-between gap-4">
+            <div class="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto justify-between lg:justify-start">
+                <div class="flex items-center space-x-2 bg-slate-100/80 p-1 rounded-2xl border border-slate-200">
+                    <button onclick="changeMonth(-1)" class="btn-act p-2 hover:bg-white text-slate-600 rounded-xl transition" title="เดือนก่อนหน้า">
+                        <i class="fa-solid fa-chevron-left text-sm"></i>
+                    </button>
+                    <div class="text-center px-4">
+                        <h2 id="currentMonthYearText" class="text-base sm:text-lg font-bold text-slate-800 min-w-[200px] sm:min-w-[240px]">กำลังโหลด...</h2>
+                    </div>
+                    <button onclick="changeMonth(1)" class="btn-act p-2 hover:bg-white text-slate-600 rounded-xl transition" title="เดือนถัดไป">
+                        <i class="fa-solid fa-chevron-right text-sm"></i>
+                    </button>
+                </div>
+                
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <button onclick="goToCurrentMonth()" class="btn-act px-4 py-2 text-sm font-medium bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-2xl transition flex-1 sm:flex-none text-center shadow-xs">
+                        เดือนปัจจุบัน
+                    </button>
+                    <select id="payCycleSelect" onchange="togglePayCycleMode()" class="btn-act text-sm font-medium bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-2xl px-4 py-2 outline-none cursor-pointer flex-1 sm:flex-none shadow-xs">
+                        <option value="cycle">รอบเงินเดือน (26 - 25)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Allowances Toggles -->
+            <div class="flex flex-wrap items-center justify-end w-full lg:w-auto gap-3">
+                <!-- Diligence Bonus -->
+                <div class="flex items-center justify-between gap-3 bg-emerald-50 border border-emerald-200 px-4 py-2 rounded-2xl flex-1 sm:flex-none">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs">
+                            <i class="fa-solid fa-award text-sm"></i>
+                        </div>
+                        <div>
+                            <span class="text-[11px] uppercase tracking-wider text-emerald-800 font-bold block leading-tight">เบี้ยขยัน</span>
+                            <span id="diligenceAmountLabel" class="text-xs font-semibold text-emerald-950">1,000 ฿</span>
+                        </div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer ml-2">
+                        <input type="checkbox" id="diligenceToggle" class="sr-only peer" onchange="toggleDiligenceBonus(this.checked)">
+                        <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                    </label>
+                </div>
+
+                <!-- KPI Bonus -->
+                <div class="flex items-center justify-between gap-3 bg-purple-50 border border-purple-200 px-4 py-2 rounded-2xl flex-1 sm:flex-none">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-purple-600 text-white flex items-center justify-center shadow-xs">
+                            <i class="fa-solid fa-chart-line text-sm"></i>
+                        </div>
+                        <div>
+                            <span class="text-[11px] uppercase tracking-wider text-purple-800 font-bold block leading-tight">KPI</span>
+                            <span id="monthlyKpiAmountLabel" class="text-xs font-semibold text-purple-950">1,000 ฿</span>
+                        </div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer ml-2">
+                        <input type="checkbox" id="monthlyKpiToggle" class="sr-only peer" onchange="toggleMonthlyKpiBonus(this.checked)">
+                        <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Summary Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            
+            <div class="summary-card-bg p-5 text-white flex flex-col justify-between relative overflow-hidden shadow-md">
+                <div>
+                    <div class="flex justify-between items-start">
+                        <span id="summaryTitleLabel" class="text-xs font-bold uppercase tracking-wider text-slate-300">รายได้สุทธิประจำเดือน</span>
+                        <span class="p-2 bg-white/10 rounded-xl border border-white/10"><i class="fa-solid fa-wallet text-sky-400 text-lg"></i></span>
+                    </div>
+                    <div class="mt-3">
+                        <div class="flex items-baseline gap-1.5">
+                            <span id="summaryTotalNet" class="text-3xl sm:text-4xl font-bold tracking-tight text-white">0.00</span>
+                            <span class="text-xs font-medium text-slate-300">บาท</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 pt-3 border-t border-white/10 text-xs text-slate-300 flex justify-between items-center">
+                    <span>เฉลี่ยต่อวันทำงาน:</span>
+                    <span id="summaryAvgPerDay" class="font-bold text-white bg-white/10 px-2.5 py-1 rounded-lg border border-white/10">0.00 บาท</span>
+                </div>
+            </div>
+
+            <!-- Stats Card -->
+            <div onclick="openStatsDetailModal()" class="liquid-glass-card rounded-3xl p-4 sm:p-5 flex flex-col justify-between cursor-pointer group relative overflow-hidden">
+                <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] bg-sky-500 text-white font-bold px-2 py-0.5 rounded-full shadow-xs">
+                    คลิกเพื่อดูวัน <i class="fa-solid fa-arrow-up-right-from-square ml-0.5"></i>
+                </div>
+                <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+                    <span class="text-xs font-bold text-slate-600 uppercase tracking-wider group-hover:text-sky-600 transition">สถิติวันทำงาน & OT</span>
+                    <i class="fa-solid fa-business-time text-sky-600 text-base group-hover:scale-110 transition-transform"></i>
+                </div>
+                <div class="grid grid-cols-2 gap-x-3 gap-y-1 my-1 text-xs">
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500 font-medium">วันปกติ:</span>
+                        <span id="statNormalWorkdays" class="font-bold text-slate-800">0 วัน</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500 font-medium">ลาป่วย:</span>
+                        <span id="statSickLeaveDays" class="font-bold text-slate-800">0 วัน</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500 font-medium">ลาพักร้อน:</span>
+                        <span id="statAnnualLeaveDays" class="font-bold text-slate-800">0 วัน</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500 font-medium">ลากิจ (ไม่รับค่าจ้าง):</span>
+                        <span id="statUnpaidLeaveDays" class="font-bold text-slate-800">0 วัน</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500 font-medium">OT 1.5:</span>
+                        <span id="statOt15Count" class="font-bold text-slate-800">0 วัน</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500 font-medium">OT 2:</span>
+                        <span id="statHolidayWorkdays" class="font-bold text-slate-800">0 วัน</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500 font-medium">OT 1:</span>
+                        <span id="statPublicHolidayWorkdays" class="font-bold text-slate-800">0 วัน</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500 font-medium">OT 3:</span>
+                        <span id="statOt3Count" class="font-bold text-slate-800">0 ครั้ง</span>
+                    </div>
+                    <div class="flex justify-between items-center col-span-2">
+                        <span class="text-slate-500 font-medium">เข้ากะดึก:</span>
+                        <span id="statNightShiftCount" class="font-bold text-slate-800">0 วัน</span>
+                    </div>
+                </div>
+                <div class="pt-2 border-t border-slate-200 text-[11px] text-sky-600 font-bold flex items-center justify-center gap-1">
+                    <i class="fa-solid fa-list-check"></i> ดูรายละเอียดวันที่ทำรายการ
+                </div>
+            </div>
+
+            <!-- Earnings Break Down -->
+            <div class="liquid-glass-card rounded-3xl p-4 sm:p-5 flex flex-col justify-between">
+                <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+                    <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">สรุปค่าแรง & OT</span>
+                    <i class="fa-solid fa-coins text-amber-500 text-base"></i>
+                </div>
+                <div class="space-y-1 my-1 text-xs">
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500 font-medium">ค่าแรงพื้นฐาน (รวมวันลา):</span>
+                        <span id="summaryBaseWage" class="font-bold text-slate-800">0.00 ฿</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500 font-medium">OT 2:</span>
+                        <span id="summaryHolidayWage" class="font-bold text-slate-800">0.00 ฿</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500 font-medium">OT 1:</span>
+                        <span id="summaryPublicHolidayWage" class="font-bold text-slate-800">0.00 ฿</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500 font-medium">OT 1.5:</span>
+                        <span id="summaryOt15Wage" class="font-bold text-slate-800">0.00 ฿</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500 font-medium">OT 3:</span>
+                        <span id="summaryOt3Wage" class="font-bold text-slate-800">0.00 ฿</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Allowances Break Down -->
+            <div class="liquid-glass-card rounded-3xl p-4 sm:p-5 flex flex-col justify-between">
+                <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+                    <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">สวัสดิการ & เงินบวก</span>
+                    <i class="fa-solid fa-gift text-emerald-500 text-base"></i>
+                </div>
+                <div class="grid grid-cols-2 gap-x-3 gap-y-1 my-1 text-xs">
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500 font-medium">ค่าข้าวปกติ:</span>
+                        <span id="summaryFoodBaseAllowance" class="font-bold text-slate-800">0.00 ฿</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500 font-medium">ค่าข้าว OT:</span>
+                        <span id="summaryFoodOtAllowance" class="font-bold text-slate-800">0.00 ฿</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500 font-medium">กะดึกปกติ:</span>
+                        <span id="summaryNightBaseAllowance" class="font-bold text-slate-800">0.00 ฿</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500 font-medium">ค่ากะ OT:</span>
+                        <span id="summaryNightOtAllowance" class="font-bold text-slate-800">0.00 ฿</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500 font-medium">ค่าเดินทาง:</span>
+                        <span id="summaryTravelAllowance" class="font-bold text-slate-800">0.00 ฿</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-slate-500 font-medium">KPI:</span>
+                        <span id="summaryKpiBonus" class="font-bold text-slate-800">0.00 ฿</span>
+                    </div>
+                </div>
+                <div class="pt-1.5 border-t border-slate-200 flex justify-between items-center text-xs">
+                    <span class="text-slate-600 font-medium">เบี้ยขยัน:</span>
+                    <span id="summaryDiligenceBonus" class="font-bold text-slate-800">0.00 ฿</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fullscreen Liquid Glass Calendar Container -->
+        <div class="liquid-glass rounded-3xl overflow-hidden shadow-sm border border-slate-200 flex-grow flex flex-col min-h-[60vh]">
+            <!-- Day of Week Header -->
+            <div class="grid grid-cols-7 bg-slate-100/80 text-center font-bold text-xs sm:text-sm text-slate-600 py-3 border-b border-slate-200">
+                <div class="text-rose-500">อาทิตย์</div>
+                <div>จันทร์</div>
+                <div>อังคาร</div>
+                <div>พุธ</div>
+                <div>พฤหัสบดี</div>
+                <div>ศุกร์</div>
+                <div class="text-sky-600">เสาร์</div>
+            </div>
+            <!-- Dynamic Grid Cells -->
+            <div id="calendarGrid" class="grid grid-cols-7 gap-1 p-1 bg-slate-100/50 flex-grow h-full"></div>
+        </div>
+
+        <!-- Legend Footer -->
+        <div class="liquid-glass rounded-2xl p-3.5 text-xs flex flex-wrap gap-x-6 gap-y-2 items-center justify-between text-slate-600 font-medium">
+            <div class="flex items-center gap-2">
+                <i class="fa-solid fa-circle-info text-sky-600"></i>
+                <span class="font-bold text-slate-700">สถานะ:</span>
+                <span class="inline-flex items-center gap-1.5 ml-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> กะปกติ</span>
+                <span class="inline-flex items-center gap-1.5 ml-1"><span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span> กะดึก</span>
+                <span class="inline-flex items-center gap-1.5 ml-1"><span class="w-2.5 h-2.5 rounded-full bg-indigo-400"></span> ลาป่วย</span>
+                <span class="inline-flex items-center gap-1.5 ml-1"><span class="w-2.5 h-2.5 rounded-full bg-teal-400"></span> ลาพักร้อน</span>
+                <span class="inline-flex items-center gap-1.5 ml-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> ลากิจไม่รับค่าจ้าง</span>
+            </div>
+
+            <div class="flex items-center gap-4 flex-wrap">
+                <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span> OT 1.5 (หลัง 8 ชม.)</span>
+                <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> OT 2 (วันหยุด)</span>
+                <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> OT 1 (วันหยุดนักขัตฯ)</span>
+                <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-orange-500"></span> OT 3 (หลัง 8 ชม. ในวันหยุด)</span>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer Credit -->
+    <footer class="w-full text-center py-4 mt-6 text-xs text-slate-500 font-medium">
+        Designed & Developed by <span class="font-bold text-sky-600">PopTeezC</span>
+    </footer>
+
+    <!-- Daily Entry Modal -->
+    <div id="dayModal" class="fixed inset-0 bg-slate-900/40 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-100">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <div>
+                    <h3 id="modalDateTitle" class="font-bold text-xl text-slate-800">วันที่...</h3>
+                    <p id="modalDateSub" class="text-xs text-slate-500 font-medium">เลือกรายการทำงานสำหรับวันนี้</p>
+                </div>
+                <button onclick="closeDayModal()" class="btn-act w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-800 transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            
+            <div class="p-5 space-y-3 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                <!-- Public Holiday Checkbox First -->
+                <div>
+                    <label id="lblIsPublicHoliday" class="flex items-center justify-between p-3 rounded-2xl bg-rose-50/70 border border-rose-200 cursor-pointer hover:bg-rose-50 transition btn-act">
+                        <div class="flex items-center space-x-3">
+                            <input type="checkbox" id="chkIsPublicHoliday" class="w-4 h-4 text-rose-600 rounded focus:ring-rose-500 bg-slate-100 border-slate-300" onchange="handleModalOptionChange(event)">
+                            <span class="text-xs font-bold text-rose-800"><i class="fa-solid fa-calendar-star text-rose-500 mr-1.5"></i> กำหนดให้วันนี้เป็น "วันหยุดนักขัตฤกษ์"</span>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Normal Day Options -->
+                <div id="normalDayOptions" class="space-y-2">
+                    <label id="lblWorkday" class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50/80 hover:bg-slate-100/80 border border-slate-200 cursor-pointer transition btn-act">
+                        <div class="flex items-center space-x-3">
+                            <input type="checkbox" id="chkWorkday" class="w-5 h-5 text-sky-600 rounded focus:ring-sky-500 bg-slate-100 border-slate-300" onchange="handleModalOptionChange(event)">
+                            <div>
+                                <span class="font-bold text-slate-800 block text-sm">มาทำงาน (ปกติ 8 ชม.)</span>
+                                <span class="text-xs text-slate-500">ค่าแรง <span class="wage-base-val text-sky-600 font-bold">0</span> ฿ + ค่าข้าว <span class="food-base-val text-emerald-600 font-bold">45</span> ฿</span>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- ลาป่วย Option -->
+                    <label id="lblSickLeave" class="flex items-center justify-between p-3.5 rounded-2xl bg-indigo-50/50 hover:bg-indigo-50 border border-indigo-200 cursor-pointer transition btn-act">
+                        <div class="flex items-center space-x-3">
+                            <input type="checkbox" id="chkSickLeave" class="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500 bg-slate-100 border-slate-300" onchange="handleModalOptionChange(event)">
+                            <div>
+                                <span class="font-bold text-indigo-950 block text-sm"><i class="fa-solid fa-notes-medical text-indigo-600 mr-1.5"></i> ลาป่วย (ได้ค่าแรง)</span>
+                                <span class="text-xs text-indigo-800/80">ได้รับค่าแรงปกติ <span class="wage-base-val text-indigo-600 font-bold">0</span> ฿ (ไม่ได้รับเบี้ยขยัน)</span>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- ลาพักร้อน Option -->
+                    <label id="lblAnnualLeave" class="flex items-center justify-between p-3.5 rounded-2xl bg-teal-50/50 hover:bg-teal-50 border border-teal-200 cursor-pointer transition btn-act">
+                        <div class="flex items-center space-x-3">
+                            <input type="checkbox" id="chkAnnualLeave" class="w-5 h-5 text-teal-600 rounded focus:ring-teal-500 bg-slate-100 border-slate-300" onchange="handleModalOptionChange(event)">
+                            <div>
+                                <span class="font-bold text-teal-950 block text-sm"><i class="fa-solid fa-umbrella-beach text-teal-600 mr-1.5"></i> ลาพักร้อน (ได้ค่าแรง)</span>
+                                <span class="text-xs text-teal-800/80">ได้รับค่าแรงปกติ <span class="wage-base-val text-teal-600 font-bold">0</span> ฿ </span>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- ลากิจไม่รับค่าจ้าง Option -->
+                    <label id="lblUnpaidLeave" class="flex items-center justify-between p-3.5 rounded-2xl bg-amber-50/50 hover:bg-amber-50 border border-amber-200 cursor-pointer transition btn-act">
+                        <div class="flex items-center space-x-3">
+                            <input type="checkbox" id="chkUnpaidLeave" class="w-5 h-5 text-amber-600 rounded focus:ring-amber-500 bg-slate-100 border-slate-300" onchange="handleModalOptionChange(event)">
+                            <div>
+                                <span class="font-bold text-amber-950 block text-sm"><i class="fa-solid fa-user-slash text-amber-600 mr-1.5"></i> ลากิจ (ไม่รับค่าจ้าง)</span>
+                                <span class="text-xs text-amber-800/80">ไม่ได้รับเบี้ยขยัน</span>
+                            </div>
+                        </div>
+                    </label>
+
+                    <label id="lblOt15" class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50/80 hover:bg-slate-100/80 border border-slate-200 cursor-pointer transition btn-act">
+                        <div class="flex items-center space-x-3">
+                            <input type="checkbox" id="chkOt15" class="w-5 h-5 text-sky-600 rounded focus:ring-sky-500 bg-slate-100 border-slate-300" onchange="handleModalOptionChange(event)">
+                            <div>
+                                <span class="font-bold text-slate-800 block text-sm">ทำ OT 1.5 (2 ชั่วโมง)</span>
+                                <span class="text-xs text-slate-500">ค่า OT <span class="ot15-val text-sky-600 font-bold">0.00</span> ฿ + ค่าข้าว OT <span class="food-ot-val text-emerald-600 font-bold">35</span> ฿</span>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Sunday / Public Holiday Options -->
+                <div id="sundayOptions" class="space-y-2 hidden">
+                    <div class="bg-amber-50 border border-amber-200 p-3 rounded-2xl text-xs text-amber-900 flex items-center justify-between font-medium">
+                        <span id="holidayNoticeText" class="flex items-center gap-2"><i class="fa-solid fa-star text-amber-500"></i> วันหยุดประจำสัปดาห์ / นักขัตฤกษ์</span>
+                    </div>
+
+                    <label class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50/80 hover:bg-slate-100/80 border border-slate-200 cursor-pointer transition btn-act">
+                        <div class="flex items-center space-x-3">
+                            <input type="checkbox" id="chkHolidayOffPaid" class="w-5 h-5 text-amber-500 rounded focus:ring-amber-500 bg-slate-100 border-slate-300" onchange="handleModalOptionChange(event)">
+                            <div>
+                                <span class="font-bold text-slate-800 block text-sm">หยุด (ได้ค่าแรง 1 แรงตามสิทธิ์)</span>
+                                <span class="text-xs text-slate-500">รับค่าแรงพื้นฐาน <span class="wage-base-val text-amber-600 font-bold">0</span> บาท</span>
+                            </div>
+                        </div>
+                    </label>
+
+                    <label class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50/80 hover:bg-slate-100/80 border border-amber-200 cursor-pointer transition btn-act">
+                        <div class="flex items-center space-x-3">
+                            <input type="checkbox" id="chkHolidayWork" class="w-5 h-5 text-amber-500 rounded focus:ring-amber-500 bg-slate-100 border-slate-300" onchange="handleModalOptionChange(event)">
+                            <div>
+                                <span class="font-bold text-slate-800 block text-sm">ไปทำงานวันหยุด (8 ชม. แรก + OT 3 อีก 2 ชม.)</span>
+                                <span class="text-xs text-slate-500">8 ชม. แรก: <span class="holiday-wage-val text-amber-600 font-bold">0</span> บ. | OT 3 (2 ชม.): <span class="ot3-val text-orange-600 font-bold">0.00</span> บ.</span>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Travel Allowance -->
+                <div id="containerTravel">
+                    <label id="lblTravel" class="flex items-center justify-between p-3.5 rounded-2xl bg-teal-50/40 border border-teal-200/80 cursor-pointer hover:bg-teal-50 transition btn-act">
+                        <div class="flex items-center space-x-3">
+                            <input type="checkbox" id="chkTravel" class="w-5 h-5 text-teal-600 rounded focus:ring-teal-500 bg-slate-100 border-slate-300" onchange="handleModalOptionChange(event)">
+                            <div>
+                                <span class="font-bold text-teal-950 block text-sm"><i class="fa-solid fa-van-shuttle text-teal-600 mr-1.5"></i> ค่าเดินทาง</span>
+                                <span class="text-xs text-teal-800">รับค่าเดินทาง <span class="travel-base-val font-bold">40</span> บาท</span>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Night Shift -->
+                <div id="containerNightShift">
+                    <label id="lblNightShift" class="flex items-center justify-between p-3.5 rounded-2xl bg-indigo-50/40 border border-indigo-200/80 cursor-pointer hover:bg-indigo-50 transition btn-act">
+                        <div class="flex items-center space-x-3">
+                            <input type="checkbox" id="chkNightShift" class="w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500 bg-slate-100 border-slate-300" onchange="handleModalOptionChange(event)">
+                            <div>
+                                <span class="font-bold text-indigo-950 block text-sm"><i class="fa-solid fa-moon text-indigo-600 mr-1.5"></i> เข้ากะดึก</span>
+                                <span class="text-xs text-indigo-800">ค่ากะดึก <span class="night-base-val font-bold">70</span> บาท (+30 บาท เมื่อทำ OT)</span>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Note Input -->
+                <div>
+                    <label class="text-xs font-bold text-slate-700 block mb-1">บันทึกข้อความเพิ่มเติม:</label>
+                    <input type="text" id="inputDayNote" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs text-slate-800 focus:ring-2 focus:ring-sky-500 outline-none transition font-medium" placeholder="เช่น ลาป่วย, ลากิจ, ลาพักร้อน, สลับกะ">
+                </div>
+
+                <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-2xl flex items-center justify-between mt-2 shadow-xs">
+                    <span class="text-xs font-bold text-slate-700">รายได้รวมเฉพาะวันนี้:</span>
+                    <span id="modalCalculatedTotal" class="text-xl font-bold text-emerald-600">0.00 บาท</span>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 p-4 border-t border-slate-100 flex justify-end space-x-2">
+                <button onclick="clearCurrentDay()" class="btn-act px-4 py-2 text-xs text-rose-600 hover:bg-rose-50 rounded-xl font-bold transition">
+                    ล้างวันนี้
+                </button>
+                <button onclick="saveDayData()" class="btn-act px-5 py-2 text-xs bg-sky-600 hover:bg-sky-700 text-white rounded-xl font-bold transition shadow-md shadow-sky-600/20">
+                    บันทึกข้อมูล
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Detail Popup -->
+    <div id="statsDetailModal" class="fixed inset-0 bg-slate-900/40 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full overflow-hidden border border-slate-100 flex flex-col max-h-[85vh]">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-2xl bg-sky-600 text-white flex items-center justify-center shadow-md shadow-sky-500/20">
+                        <i class="fa-solid fa-list-check text-base"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg text-slate-800">รายละเอียดสถิติวันทำงาน & OT</h3>
+                        <p class="text-xs text-slate-500 font-medium" id="statsDetailSubTitle">ประจำเดือน...</p>
+                    </div>
+                </div>
+                <button onclick="closeStatsDetailModal()" class="btn-act w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-800 transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="p-5 space-y-4 overflow-y-auto custom-scrollbar flex-grow">
+                
+                <!-- Normal Workdays List -->
+                <div class="bg-slate-50/70 border border-slate-200/80 p-3.5 rounded-2xl shadow-xs">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <span class="font-bold text-xs text-slate-700 flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> วันทำงานปกติ (8 ชม.)
+                        </span>
+                        <span id="detailNormalBadge" class="text-xs font-bold text-slate-800 bg-white px-2 py-0.5 rounded-lg border border-slate-200">0 วัน</span>
+                    </div>
+                    <p id="detailNormalList" class="text-xs text-slate-600 leading-relaxed font-medium">ไม่มีรายการ</p>
+                </div>
+
+                <!-- Sick Leave Days List -->
+                <div class="bg-slate-50/70 border border-slate-200/80 p-3.5 rounded-2xl shadow-xs">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <span class="font-bold text-xs text-indigo-800 flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-indigo-400"></span> ลาป่วย (ได้ค่าจ้าง)
+                        </span>
+                        <span id="detailSickLeaveBadge" class="text-xs font-bold text-indigo-900 bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-200">0 วัน</span>
+                    </div>
+                    <p id="detailSickLeaveList" class="text-xs text-slate-600 leading-relaxed font-medium">ไม่มีรายการ</p>
+                </div>
+
+                <!-- Annual Leave Days List -->
+                <div class="bg-slate-50/70 border border-slate-200/80 p-3.5 rounded-2xl shadow-xs">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <span class="font-bold text-xs text-teal-800 flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-teal-400"></span> ลาพักร้อน (ได้ค่าจ้าง)
+                        </span>
+                        <span id="detailAnnualLeaveBadge" class="text-xs font-bold text-teal-900 bg-teal-50 px-2 py-0.5 rounded-lg border border-teal-200">0 วัน</span>
+                    </div>
+                    <p id="detailAnnualLeaveList" class="text-xs text-slate-600 leading-relaxed font-medium">ไม่มีรายการ</p>
+                </div>
+
+                <!-- Unpaid Leave Days List -->
+                <div class="bg-slate-50/70 border border-slate-200/80 p-3.5 rounded-2xl shadow-xs">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <span class="font-bold text-xs text-amber-800 flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> ลากิจ (ไม่รับค่าจ้าง)
+                        </span>
+                        <span id="detailUnpaidLeaveBadge" class="text-xs font-bold text-amber-900 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200">0 วัน</span>
+                    </div>
+                    <p id="detailUnpaidLeaveList" class="text-xs text-slate-600 leading-relaxed font-medium">ไม่มีรายการ</p>
+                </div>
+
+                <!-- OT 1.5 List -->
+                <div class="bg-slate-50/70 border border-slate-200/80 p-3.5 rounded-2xl shadow-xs">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <span class="font-bold text-xs text-sky-700 flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span> OT 1.5 (2 ชม. วันปกติ)
+                        </span>
+                        <span id="detailOt15Badge" class="text-xs font-bold text-sky-800 bg-sky-50 px-2 py-0.5 rounded-lg border border-sky-200">0 วัน</span>
+                    </div>
+                    <p id="detailOt15List" class="text-xs text-slate-600 leading-relaxed font-medium">ไม่มีรายการ</p>
+                </div>
+
+                <!-- OT 2 List -->
+                <div class="bg-slate-50/70 border border-slate-200/80 p-3.5 rounded-2xl shadow-xs">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <span class="font-bold text-xs text-amber-700 flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> OT 2 (วันหยุดประจำสัปดาห์)
+                        </span>
+                        <span id="detailHolidayBadge" class="text-xs font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200">0 วัน</span>
+                    </div>
+                    <p id="detailHolidayList" class="text-xs text-slate-600 leading-relaxed font-medium">ไม่มีรายการ</p>
+                </div>
+
+                <!-- OT 1 Public Holiday List -->
+                <div class="bg-slate-50/70 border border-slate-200/80 p-3.5 rounded-2xl shadow-xs">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <span class="font-bold text-xs text-rose-700 flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> OT 1 (วันหยุดนักขัตฤกษ์)
+                        </span>
+                        <span id="detailPublicHolidayBadge" class="text-xs font-bold text-rose-800 bg-rose-50 px-2 py-0.5 rounded-lg border border-rose-200">0 วัน</span>
+                    </div>
+                    <p id="detailPublicHolidayList" class="text-xs text-slate-600 leading-relaxed font-medium">ไม่มีรายการ</p>
+                </div>
+
+                <!-- OT 3 List -->
+                <div class="bg-slate-50/70 border border-slate-200/80 p-3.5 rounded-2xl shadow-xs">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <span class="font-bold text-xs text-orange-700 flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-orange-500"></span> OT 3 (หลัง 8 ชม. ในวันหยุด)
+                        </span>
+                        <span id="detailOt3Badge" class="text-xs font-bold text-orange-800 bg-orange-50 px-2 py-0.5 rounded-lg border border-orange-200">0 ครั้ง</span>
+                    </div>
+                    <p id="detailOt3List" class="text-xs text-slate-600 leading-relaxed font-medium">ไม่มีรายการ</p>
+                </div>
+
+                <!-- Night Shift List -->
+                <div class="bg-slate-50/70 border border-slate-200/80 p-3.5 rounded-2xl shadow-xs">
+                    <div class="flex justify-between items-center mb-1.5">
+                        <span class="font-bold text-xs text-indigo-700 flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span> เข้ากะดึก
+                        </span>
+                        <span id="detailNightBadge" class="text-xs font-bold text-indigo-800 bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-200">0 วัน</span>
+                    </div>
+                    <p id="detailNightList" class="text-xs text-slate-600 leading-relaxed font-medium">ไม่มีรายการ</p>
+                </div>
+
+            </div>
+
+            <div class="bg-slate-50 p-4 border-t border-slate-100 text-right">
+                <button onclick="closeStatsDetailModal()" class="btn-act px-5 py-2 text-xs bg-sky-600 hover:bg-sky-700 text-white rounded-xl font-bold transition">
+                    ปิดหน้าต่าง
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Wage Alert Modal -->
+    <div id="wageAlertModal" class="fixed inset-0 bg-slate-900/40 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full overflow-hidden border border-slate-100 text-center p-6 space-y-4">
+            <div class="w-16 h-16 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center mx-auto text-2xl border border-amber-200">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div>
+                <h3 class="font-bold text-lg text-slate-800">ยังไม่ได้ตั้งค่าค่าแรง!</h3>
+                <p class="text-xs text-slate-500 mt-1.5 leading-relaxed font-medium">
+                    กรุณากรอก <span class="font-bold text-slate-700">"ค่าแรงพื้นฐาน (บาท/วัน)"</span> ในส่วนการตั้งค่า เพื่อให้ระบบสามารถคำนวณรายได้และ OT ได้อย่างถูกต้อง
+                </p>
+            </div>
+            <div class="pt-2 flex flex-col gap-2">
+                <button onclick="goToSettingsFromAlert()" class="btn-act w-full py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-2xl transition shadow-lg shadow-sky-600/20 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-sliders"></i> ไปที่หน้าตั้งค่าค่าแรง
+                </button>
+                <button onclick="closeWageAlertModal()" class="btn-act w-full py-2 text-xs font-semibold text-slate-400 hover:text-slate-600">
+                    ข้ามไปก่อน
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="fixed inset-0 bg-slate-900/40 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-100">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2"><i class="fa-solid fa-sliders text-sky-600"></i> ตั้งค่าอัตราค่าแรง</h3>
+                <button onclick="closeSettingsModal()" class="btn-act w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-800 transition">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+            </div>
+            <div class="p-5 space-y-3.5 max-h-[70vh] overflow-y-auto custom-scrollbar text-xs">
+                <div>
+                    <label class="font-bold text-slate-800 block mb-1">ค่าแรงพื้นฐาน (บาท/วัน)</label>
+                    <input type="number" id="settingDailyWage" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm text-slate-800 focus:ring-2 focus:ring-sky-500 outline-none transition font-bold" value="0">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="font-bold text-slate-500 block mb-1">ค่าข้าวปกติ (บาท)</label>
+                        <input type="number" id="settingFoodBase" class="w-full bg-slate-100 border border-slate-200 text-slate-500 rounded-xl p-2.5 outline-none cursor-not-allowed font-semibold" value="45" disabled>
+                    </div>
+                    <div>
+                        <label class="font-bold text-slate-500 block mb-1">ค่าข้าว OT (บาท)</label>
+                        <input type="number" id="settingFoodOt" class="w-full bg-slate-100 border border-slate-200 text-slate-500 rounded-xl p-2.5 outline-none cursor-not-allowed font-semibold" value="35" disabled>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="font-bold text-slate-500 block mb-1">ค่ากะดึกปกติ (บาท)</label>
+                        <input type="number" id="settingNightBase" class="w-full bg-slate-100 border border-slate-200 text-slate-500 rounded-xl p-2.5 outline-none cursor-not-allowed font-semibold" value="70" disabled>
+                    </div>
+                    <div>
+                        <label class="font-bold text-slate-500 block mb-1">ค่ากะเพิ่มเมื่อ OT (บาท)</label>
+                        <input type="number" id="settingNightOt" class="w-full bg-slate-100 border border-slate-200 text-slate-500 rounded-xl p-2.5 outline-none cursor-not-allowed font-semibold" value="30" disabled>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="font-bold text-slate-500 block mb-1">ค่าเดินทางตั้งต้น (บาท/วัน)</label>
+                    <input type="number" id="settingTravelBase" class="w-full bg-slate-100 border border-slate-200 text-slate-500 rounded-xl p-2.5 outline-none cursor-not-allowed font-semibold" value="40" disabled>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="font-bold text-slate-800 block mb-1">เบี้ยขยันเดือนละ (บาท)</label>
+                        <input type="number" id="settingDiligence" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm text-slate-800 focus:ring-2 focus:ring-emerald-500 outline-none transition font-bold" value="1000">
+                    </div>
+                    <div>
+                        <label class="font-bold text-slate-800 block mb-1">KPI เหมาเดือนละ (บาท)</label>
+                        <input type="number" id="settingKpiMonthly" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm text-slate-800 focus:ring-2 focus:ring-purple-500 outline-none transition font-bold" value="1000">
+                    </div>
+                </div>
+            </div>
+            <div class="bg-slate-50 p-4 border-t border-slate-100 flex justify-end space-x-2">
+                <button onclick="resetSettingsToDefault()" class="btn-act px-3 py-2 text-xs text-slate-500 hover:text-slate-800 font-medium">คืนค่าเริ่มต้น</button>
+                <button onclick="saveSettings()" class="btn-act px-5 py-2 text-xs bg-sky-600 hover:bg-sky-700 text-white rounded-xl font-bold transition shadow-md shadow-sky-600/20">บันทึกการตั้งค่า</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Backup Modal -->
+    <div id="backupModal" class="fixed inset-0 bg-slate-900/40 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-100">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2"><i class="fa-solid fa-database text-sky-600"></i> สำรอง / ฟื้นฟูข้อมูล</h3>
+                <button onclick="closeBackupModal()" class="btn-act w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-800 transition">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+            </div>
+            <div class="p-5 space-y-3">
+                <div class="border border-slate-200 p-4 rounded-2xl bg-slate-50/50 shadow-xs">
+                    <h4 class="font-bold text-sm text-slate-800 mb-0.5">1. ส่งออกข้อมูล (Backup)</h4>
+                    <p class="text-xs text-slate-500 font-medium mb-2.5">ดาวน์โหลดไฟล์ JSON เก็บไว้ป้องกันข้อมูลสูญหาย</p>
+                    <button onclick="exportDataJSON()" class="btn-act w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition flex items-center justify-center gap-2 shadow-xs">
+                        <i class="fa-solid fa-download"></i> ดาวน์โหลดไฟล์สำรองข้อมูล
+                    </button>
+                </div>
+                <div class="border border-slate-200 p-4 rounded-2xl bg-slate-50/50 shadow-xs">
+                    <h4 class="font-bold text-sm text-slate-800 mb-0.5">2. นำเข้าข้อมูล (Restore)</h4>
+                    <p class="text-xs text-slate-500 font-medium mb-2.5">เลือกไฟล์สำรองข้อมูล JSON เพื่อกู้คืนบันทึกของคุณ</p>
+                    <input type="file" id="importFileInput" accept=".json" class="hidden" onchange="importDataJSON(event)">
+                    <button onclick="document.getElementById('importFileInput').click()" class="btn-act w-full py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl transition flex items-center justify-center gap-2 shadow-xs">
+                        <i class="fa-solid fa-upload"></i> เลือกไฟล์เพื่อนำเข้า
+                    </button>
+                </div>
+            </div>
+            <div class="bg-slate-50 p-4 border-t border-slate-100 text-right">
+                <button onclick="closeBackupModal()" class="btn-act px-4 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-200 rounded-xl transition">ปิดหน้าต่าง</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application JavaScript Logic -->
+    <script>
+        const MONTH_NAMES = [
+            "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
+            "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"
+        ];
+
+        const DAY_NAMES = [
+            "วันอาทิตย์", "วันจันทร์", "วันอังคาร", "วันพุธ", "วันพฤหัสบดี", "วันศุกร์", "วันเสาร์"
+        ];
+
+        const DEFAULT_SETTINGS = {
+            dailyWage: 0,
+            foodBase: 45,
+            foodOt: 35,
+            nightBase: 70,
+            nightOt: 30,
+            travelBase: 40,
+            diligenceBonus: 1000,
+            kpiMonthlyBonus: 1000
+        };
+
+        let currentSettings = { ...DEFAULT_SETTINGS };
+        let currentDate = new Date();
+        let selectedDayKey = null;
+        let workData = {}; 
+        let diligenceSettings = {}; 
+        let monthlyKpiSettings = {}; 
+        let isPayCycleMode = true;
+
+        let detailLists = {
+            normal: [],
+            sickLeave: [],
+            annualLeave: [],
+            unpaidLeave: [],
+            ot15: [],
+            holiday: [],
+            publicHoliday: [],
+            ot3: [],
+            night: []
+        };
+
+        window.onload = function() {
+            loadSettingsFromStorage();
+            loadWorkDataFromStorage();
+            renderCalendar();
+            checkWageSettingAlert();
+        };
+
+        function checkWageSettingAlert() {
+            if (!currentSettings.dailyWage || currentSettings.dailyWage <= 0) {
+                document.getElementById('wageAlertModal').classList.remove('hidden');
+            }
+        }
+
+        function closeWageAlertModal() {
+            document.getElementById('wageAlertModal').classList.add('hidden');
+        }
+
+        function goToSettingsFromAlert() {
+            closeWageAlertModal();
+            openSettingsModal();
+        }
+
+        function loadSettingsFromStorage() {
+            const saved = localStorage.getItem('wage_calc_settings_v4');
+            if (saved) {
+                try {
+                    currentSettings = { ...DEFAULT_SETTINGS, ...JSON.parse(saved) };
+                    currentSettings.foodBase = 45;
+                    currentSettings.foodOt = 35;
+                    currentSettings.nightBase = 70;
+                    currentSettings.nightOt = 30;
+                    currentSettings.travelBase = 40;
+                } catch(e) {
+                    currentSettings = { ...DEFAULT_SETTINGS };
+                }
+            }
+            updateSettingsUIValues();
+        }
+
+        function saveSettingsToStorage() {
+            localStorage.setItem('wage_calc_settings_v4', JSON.stringify(currentSettings));
+            updateSettingsUIValues();
+        }
+
+        function loadWorkDataFromStorage() {
+            const savedData = localStorage.getItem('wage_calc_workdata_v4');
+            if (savedData) {
+                try { workData = JSON.parse(savedData); } catch(e) { workData = {}; }
+            }
+            const savedDiligence = localStorage.getItem('wage_calc_diligence_v4');
+            if (savedDiligence) {
+                try { diligenceSettings = JSON.parse(savedDiligence); } catch(e) { diligenceSettings = {}; }
+            }
+            const savedMonthlyKpi = localStorage.getItem('wage_calc_monthly_kpi_v4');
+            if (savedMonthlyKpi) {
+                try { monthlyKpiSettings = JSON.parse(savedMonthlyKpi); } catch(e) { monthlyKpiSettings = {}; }
+            }
+        }
+
+        function saveWorkDataToStorage() {
+            localStorage.setItem('wage_calc_workdata_v4', JSON.stringify(workData));
+            localStorage.setItem('wage_calc_diligence_v4', JSON.stringify(diligenceSettings));
+            localStorage.setItem('wage_calc_monthly_kpi_v4', JSON.stringify(monthlyKpiSettings));
+        }
+
+        function updateSettingsUIValues() {
+            document.querySelectorAll('.wage-base-val').forEach(el => el.textContent = currentSettings.dailyWage);
+            document.querySelectorAll('.food-base-val').forEach(el => el.textContent = currentSettings.foodBase);
+            document.querySelectorAll('.food-ot-val').forEach(el => el.textContent = currentSettings.foodOt);
+            document.querySelectorAll('.night-base-val').forEach(el => el.textContent = currentSettings.nightBase);
+            document.querySelectorAll('.night-ot-val').forEach(el => el.textContent = currentSettings.nightOt);
+            document.querySelectorAll('.travel-base-val').forEach(el => el.textContent = currentSettings.travelBase);
+            document.querySelectorAll('.holiday-wage-val').forEach(el => el.textContent = currentSettings.dailyWage * 2);
+            
+            const hourlyRate = currentSettings.dailyWage / 8;
+            const ot15Val = (hourlyRate * 1.5 * 2).toFixed(2);
+            document.querySelectorAll('.ot15-val').forEach(el => el.textContent = ot15Val);
+
+            const ot3Val = (hourlyRate * 3 * 2).toFixed(2);
+            document.querySelectorAll('.ot3-val').forEach(el => el.textContent = ot3Val);
+            
+            document.getElementById('diligenceAmountLabel').textContent = `${(currentSettings.diligenceBonus || 0).toLocaleString()} ฿`;
+            document.getElementById('monthlyKpiAmountLabel').textContent = `${(currentSettings.kpiMonthlyBonus || 0).toLocaleString()} ฿`;
+        }
+
+        function calculateDayIncome(dayData, isHolidayOrSunday) {
+            if (!dayData) return { 
+                total: 0, wage: 0, holidayWage: 0, publicHolidayWage: 0, ot: 0, ot3: 0, 
+                foodBase: 0, foodOt: 0, nightBase: 0, nightOt: 0, travel: 0 
+            };
+
+            let wage = 0, holidayWage = 0, publicHolidayWage = 0, ot = 0, ot3 = 0;
+            let foodBase = 0, foodOt = 0, nightBase = 0, nightOt = 0, travel = 0;
+
+            const hourlyRate = currentSettings.dailyWage / 8;
+
+            if (dayData.isPublicHoliday) {
+                if (dayData.holidayOffPaid) wage += currentSettings.dailyWage;
+                if (dayData.holidayWork) {
+                    publicHolidayWage += (currentSettings.dailyWage * 2); 
+                    ot3 += (hourlyRate * 3 * 2);
+                    foodBase += currentSettings.foodBase;
+                }
+            } else if (isHolidayOrSunday) {
+                if (dayData.holidayOffPaid) wage += currentSettings.dailyWage;
+                if (dayData.holidayWork) {
+                    holidayWage += (currentSettings.dailyWage * 2); 
+                    ot3 += (hourlyRate * 3 * 2);
+                    foodBase += currentSettings.foodBase;
+                }
+            } else {
+                if (dayData.workday) {
+                    wage += currentSettings.dailyWage;
+                    foodBase += currentSettings.foodBase;
+                } else if (dayData.sickLeave || dayData.annualLeave || dayData.leaveDay) {
+                    wage += currentSettings.dailyWage;
+                } else if (dayData.unpaidLeave) {
+                    wage += 0;
+                }
+                if (dayData.ot15) {
+                    ot += hourlyRate * 1.5 * 2;
+                    foodOt += currentSettings.foodOt;
+                }
+            }
+
+            if (dayData.nightShift) {
+                nightBase += currentSettings.nightBase;
+                if (!isHolidayOrSunday && !dayData.isPublicHoliday && dayData.ot15) {
+                    nightOt += currentSettings.nightOt;
+                }
+            }
+
+            if (dayData.hasTravel) {
+                travel += currentSettings.travelBase;
+            }
+
+            const total = wage + holidayWage + publicHolidayWage + ot + ot3 + foodBase + foodOt + nightBase + nightOt + travel;
+            return { total, wage, holidayWage, publicHolidayWage, ot, ot3, foodBase, foodOt, nightBase, nightOt, travel };
+        }
+
+        function changeMonth(delta) {
+            currentDate.setMonth(currentDate.getMonth() + delta);
+            renderCalendar();
+        }
+
+        function goToCurrentMonth() {
+            currentDate = new Date();
+            renderCalendar();
+        }
+
+        function togglePayCycleMode() {
+            renderCalendar();
+        }
+
+        function getMonthKey(date) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            return `${y}-${m}`;
+        }
+
+        function formatDisplayDate(dateObj) {
+            const d = dateObj.getDate();
+            const m = MONTH_NAMES[dateObj.getMonth()];
+            return `${d} ${m}`;
+        }
+
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const monthKey = getMonthKey(currentDate);
+
+            let cycleTitleText = "";
+            let prevMonth = month - 1;
+            let prevYear = year;
+            if (prevMonth < 0) { prevMonth = 11; prevYear -= 1; }
+            cycleTitleText = `26 ${MONTH_NAMES[prevMonth]} - 25 ${MONTH_NAMES[month]} ${year + 543}`;
+            document.getElementById('currentMonthYearText').textContent = cycleTitleText;
+            document.getElementById('summaryTitleLabel').textContent = `รายได้รอบตัดเงินเดือน`;
+
+            const isDiligenceChecked = diligenceSettings[monthKey] !== undefined ? diligenceSettings[monthKey] : true;
+            document.getElementById('diligenceToggle').checked = isDiligenceChecked;
+
+            const isMonthlyKpiChecked = monthlyKpiSettings[monthKey] !== undefined ? monthlyKpiSettings[monthKey] : false;
+            document.getElementById('monthlyKpiToggle').checked = isMonthlyKpiChecked;
+
+            let datesToRender = [];
+            const daysInPrevMonth = new Date(prevYear, prevMonth + 1, 0).getDate();
+            for (let d = 26; d <= daysInPrevMonth; d++) { datesToRender.push(new Date(prevYear, prevMonth, d)); }
+            for (let d = 1; d <= 25; d++) { datesToRender.push(new Date(year, month, d)); }
+
+            const calendarGrid = document.getElementById('calendarGrid');
+            calendarGrid.innerHTML = '';
+
+            const firstDateObj = datesToRender[0];
+            const firstDayIndex = firstDateObj.getDay();
+
+            const totalCells = firstDayIndex + datesToRender.length;
+            const totalRows = Math.ceil(totalCells / 7);
+            calendarGrid.style.gridTemplateRows = `repeat(${totalRows}, minmax(100px, 1fr))`;
+
+            const fragment = document.createDocumentFragment();
+
+            for (let i = 0; i < firstDayIndex; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'bg-slate-200/30 border border-slate-200/60 rounded-2xl min-h-[100px]';
+                fragment.appendChild(emptyCell);
+            }
+
+            detailLists = { normal: [], sickLeave: [], annualLeave: [], unpaidLeave: [], ot15: [], holiday: [], publicHoliday: [], ot3: [], night: [] };
+
+            let monthlyNormalWorkdays = 0, monthlySickLeaveDays = 0, monthlyAnnualLeaveDays = 0, monthlyUnpaidLeaveDays = 0, monthlyHolidayWorkdays = 0, monthlyPublicHolidayWorkdays = 0;
+            let monthlyOt15Count = 0, monthlyOt3Count = 0, monthlyNightShiftCount = 0;
+
+            let totalBaseWage = 0, totalHolidayWage = 0, totalPublicHolidayWage = 0;
+            let totalOt15Wage = 0, totalOt3Wage = 0, totalFoodBaseAllowance = 0, totalFoodOtAllowance = 0;
+            let totalNightBaseAllowance = 0, totalNightOtAllowance = 0, totalTravelAllowance = 0;
+
+            const today = new Date();
+
+            datesToRender.forEach((dateObj) => {
+                const y = dateObj.getFullYear();
+                const m = dateObj.getMonth();
+                const day = dateObj.getDate();
+                const dayOfWeek = dateObj.getDay();
+                const dateKey = `${y}-${String(m + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const formattedDateStr = formatDisplayDate(dateObj);
+
+                const dayData = workData[dateKey] || {};
+                const isHolidayOrSunday = (dayOfWeek === 0 || dayData.isPublicHoliday);
+                const calc = calculateDayIncome(dayData, isHolidayOrSunday);
+
+                if (!dayData.isPublicHoliday && dayOfWeek !== 0) {
+                    if (dayData.workday) {
+                        monthlyNormalWorkdays++;
+                        totalBaseWage += calc.wage;
+                        detailLists.normal.push(formattedDateStr);
+                    } else if (dayData.sickLeave) {
+                        monthlySickLeaveDays++;
+                        totalBaseWage += calc.wage;
+                        detailLists.sickLeave.push(formattedDateStr);
+                    } else if (dayData.annualLeave) {
+                        monthlyAnnualLeaveDays++;
+                        totalBaseWage += calc.wage;
+                        detailLists.annualLeave.push(formattedDateStr);
+                    } else if (dayData.leaveDay) {
+                        monthlySickLeaveDays++;
+                        totalBaseWage += calc.wage;
+                        detailLists.sickLeave.push(formattedDateStr);
+                    } else if (dayData.unpaidLeave) {
+                        monthlyUnpaidLeaveDays++;
+                        detailLists.unpaidLeave.push(formattedDateStr);
+                    }
+                    if (dayData.ot15) {
+                        monthlyOt15Count++;
+                        totalOt15Wage += calc.ot;
+                        detailLists.ot15.push(formattedDateStr);
+                    }
+                }
+
+                if (dayData.isPublicHoliday) {
+                    if (dayData.holidayWork) {
+                        monthlyPublicHolidayWorkdays++;
+                        monthlyOt3Count++;
+                        totalPublicHolidayWage += calc.publicHolidayWage;
+                        totalOt3Wage += calc.ot3;
+                        detailLists.publicHoliday.push(formattedDateStr);
+                        detailLists.ot3.push(formattedDateStr);
+                    } else if (dayData.holidayOffPaid) {
+                        totalBaseWage += currentSettings.dailyWage;
+                    }
+                } else if (dayOfWeek === 0) {
+                    if (dayData.holidayWork) {
+                        monthlyHolidayWorkdays++;
+                        monthlyOt3Count++;
+                        totalHolidayWage += calc.holidayWage;
+                        totalOt3Wage += calc.ot3;
+                        detailLists.holiday.push(formattedDateStr);
+                        detailLists.ot3.push(formattedDateStr);
+                    } else if (dayData.holidayOffPaid) {
+                        totalBaseWage += currentSettings.dailyWage;
+                    }
+                }
+
+                if (dayData.nightShift) {
+                    monthlyNightShiftCount++;
+                    detailLists.night.push(formattedDateStr);
+                }
+
+                totalFoodBaseAllowance += calc.foodBase;
+                totalFoodOtAllowance += calc.foodOt;
+                totalNightBaseAllowance += calc.nightBase;
+                totalNightOtAllowance += calc.nightOt;
+                totalTravelAllowance += calc.travel;
+
+                const cell = document.createElement('div');
+                const isToday = today.getFullYear() === y && today.getMonth() === m && today.getDate() === day;
+
+                const hasRecord = dayData.workday || dayData.sickLeave || dayData.annualLeave || dayData.leaveDay || dayData.unpaidLeave || dayData.ot15 || dayData.holidayWork || dayData.holidayOffPaid || dayData.nightShift || dayData.hasTravel;
+
+                cell.className = `cal-cell ${hasRecord ? 'cal-cell-active' : ''} p-2.5 rounded-2xl min-h-[100px] h-full cursor-pointer flex flex-col justify-between relative ${isToday ? 'ring-2 ring-sky-500 bg-sky-50 shadow-xs' : ''}`;
+                cell.onclick = () => openDayModal(dateKey, day, isHolidayOrSunday, dateObj);
+
+                let statusBadgesHtml = '';
+                if (dayData.isPublicHoliday) {
+                    statusBadgesHtml += `<span class="bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-xs">นักขัตฯ</span>`;
+                    if (dayData.holidayWork) {
+                        statusBadgesHtml += `<span class="bg-rose-100 text-rose-700 text-[10px] font-bold px-1 py-0.5 rounded">OT1</span>`;
+                        statusBadgesHtml += `<span class="bg-orange-100 text-orange-700 text-[10px] font-bold px-1 py-0.5 rounded">OT3</span>`;
+                    }
+                }
+                if (dayOfWeek === 0 && !dayData.isPublicHoliday) {
+                    if (dayData.holidayWork) {
+                        statusBadgesHtml += `<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-1 py-0.5 rounded">OT2</span>`;
+                        statusBadgesHtml += `<span class="bg-orange-100 text-orange-800 text-[10px] font-bold px-1 py-0.5 rounded">OT3</span>`;
+                    }
+                    else if (dayData.holidayOffPaid) statusBadgesHtml += `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-1 py-0.5 rounded">หยุดได้ค่าแรง</span>`;
+                }
+                if (!isHolidayOrSunday) {
+                    if (dayData.workday) statusBadgesHtml += `<span class="bg-emerald-500 text-white text-[10px] font-bold px-1 py-0.5 rounded shadow-xs"><i class="fa-solid fa-check"></i></span>`;
+                    if (dayData.sickLeave) statusBadgesHtml += `<span class="bg-indigo-100 text-indigo-800 border border-indigo-200 text-[10px] font-bold px-1 py-0.5 rounded">ลาป่วย</span>`;
+                    if (dayData.annualLeave) statusBadgesHtml += `<span class="bg-teal-100 text-teal-800 border border-teal-200 text-[10px] font-bold px-1 py-0.5 rounded">พักร้อน</span>`;
+                    if (dayData.leaveDay && !dayData.sickLeave && !dayData.annualLeave) statusBadgesHtml += `<span class="bg-indigo-100 text-indigo-800 border border-indigo-200 text-[10px] font-bold px-1 py-0.5 rounded">ลาป่วย</span>`;
+                    if (dayData.unpaidLeave) statusBadgesHtml += `<span class="bg-amber-100 text-amber-800 border border-amber-200 text-[10px] font-bold px-1 py-0.5 rounded">ลากิจ</span>`;
+                    if (dayData.ot15) statusBadgesHtml += `<span class="bg-sky-100 text-sky-800 text-[10px] font-bold px-1 py-0.5 rounded">OT1.5</span>`;
+                }
+                if (dayData.hasTravel) statusBadgesHtml += `<span class="bg-teal-100 text-teal-800 text-[10px] font-bold px-1 py-0.5 rounded" title="ค่าเดินทาง"><i class="fa-solid fa-van-shuttle"></i></span>`;
+                if (dayData.nightShift) statusBadgesHtml += `<span class="bg-indigo-100 text-indigo-800 text-[10px] font-bold px-1 py-0.5 rounded"><i class="fa-solid fa-moon"></i></span>`;
+
+                const dayNumColor = (dayOfWeek === 0 || dayData.isPublicHoliday) ? 'text-rose-500 font-bold' : (dayOfWeek === 6 ? 'text-sky-600 font-bold' : 'text-slate-700 font-semibold');
+                let monthLabelIndicator = `<span class="text-[10px] text-slate-400 font-normal ml-1">${MONTH_NAMES[m].substring(0, 3)}</span>`;
+
+                cell.innerHTML = `
+                    <div>
+                        <div class="flex items-center mb-1">
+                            <span class="text-xs sm:text-sm ${dayNumColor} ${isToday ? 'bg-sky-600 text-white w-5 h-5 rounded-full flex items-center justify-center font-bold text-xs shadow-xs' : ''}">${day}</span>
+                            ${monthLabelIndicator}
+                        </div>
+                        ${statusBadgesHtml ? `<div class="flex flex-wrap gap-1 mt-1 mb-1">${statusBadgesHtml}</div>` : ''}
+                        ${dayData.note ? `<p class="text-[10px] text-slate-500 truncate mt-0.5"><i class="fa-regular fa-note-sticky mr-0.5 text-slate-400"></i>${dayData.note}</p>` : ''}
+                    </div>
+                    <div>
+                        ${calc.total > 0 ? `
+                            <div class="text-right mt-1">
+                                <span class="text-[11px] sm:text-xs font-bold text-slate-800 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded-lg block sm:inline-block shadow-2xs">
+                                    ฿${calc.total.toLocaleString('th-TH', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                                </span>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+                fragment.appendChild(cell);
+            });
+
+            const totalCellsRendered = firstDayIndex + datesToRender.length;
+            const remainingCells = (7 - (totalCellsRendered % 7)) % 7;
+            for (let i = 0; i < remainingCells; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'bg-slate-200/30 border border-slate-200/60 rounded-2xl min-h-[100px]';
+                fragment.appendChild(emptyCell);
+            }
+
+            calendarGrid.appendChild(fragment);
+
+            const hasDisqualifyingLeave = (monthlyUnpaidLeaveDays > 0 || monthlySickLeaveDays > 0);
+            const diligenceBonusTotal = (isDiligenceChecked && !hasDisqualifyingLeave) ? (currentSettings.diligenceBonus || 0) : 0;
+            const monthlyKpiTotal = isMonthlyKpiChecked ? (currentSettings.kpiMonthlyBonus || 0) : 0;
+
+            const totalFoodAllowance = totalFoodBaseAllowance + totalFoodOtAllowance;
+            const totalNightAllowance = totalNightBaseAllowance + totalNightOtAllowance;
+
+            const totalNetIncome = totalBaseWage + totalHolidayWage + totalPublicHolidayWage + totalOt15Wage + totalOt3Wage + totalFoodAllowance + totalNightAllowance + totalTravelAllowance + monthlyKpiTotal + diligenceBonusTotal;
+
+            document.getElementById('summaryTotalNet').textContent = totalNetIncome.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            
+            const totalWorkedDaysCount = monthlyNormalWorkdays + monthlySickLeaveDays + monthlyAnnualLeaveDays + monthlyHolidayWorkdays + monthlyPublicHolidayWorkdays;
+            const avgPerDay = totalWorkedDaysCount > 0 ? (totalNetIncome / totalWorkedDaysCount) : 0;
+            document.getElementById('summaryAvgPerDay').textContent = `${avgPerDay.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท`;
+
+            document.getElementById('statNormalWorkdays').textContent = `${monthlyNormalWorkdays} วัน`;
+            document.getElementById('statSickLeaveDays').textContent = `${monthlySickLeaveDays} วัน`;
+            document.getElementById('statAnnualLeaveDays').textContent = `${monthlyAnnualLeaveDays} วัน`;
+            document.getElementById('statUnpaidLeaveDays').textContent = `${monthlyUnpaidLeaveDays} วัน`;
+            document.getElementById('statHolidayWorkdays').textContent = `${monthlyHolidayWorkdays} วัน`;
+            document.getElementById('statPublicHolidayWorkdays').textContent = `${monthlyPublicHolidayWorkdays} วัน`;
+            document.getElementById('statOt15Count').textContent = `${monthlyOt15Count} วัน`;
+            document.getElementById('statOt3Count').textContent = `${monthlyOt3Count} ครั้ง`;
+            document.getElementById('statNightShiftCount').textContent = `${monthlyNightShiftCount} วัน`;
+
+            document.getElementById('summaryBaseWage').textContent = `${totalBaseWage.toLocaleString('th-TH', { minimumFractionDigits: 2 })} ฿`;
+            document.getElementById('summaryHolidayWage').textContent = `${totalHolidayWage.toLocaleString('th-TH', { minimumFractionDigits: 2 })} ฿`;
+            document.getElementById('summaryPublicHolidayWage').textContent = `${totalPublicHolidayWage.toLocaleString('th-TH', { minimumFractionDigits: 2 })} ฿`;
+            document.getElementById('summaryOt15Wage').textContent = `${totalOt15Wage.toLocaleString('th-TH', { minimumFractionDigits: 2 })} ฿`;
+            document.getElementById('summaryOt3Wage').textContent = `${totalOt3Wage.toLocaleString('th-TH', { minimumFractionDigits: 2 })} ฿`;
+
+            document.getElementById('summaryFoodBaseAllowance').textContent = `${totalFoodBaseAllowance.toLocaleString('th-TH', { minimumFractionDigits: 2 })} ฿`;
+            document.getElementById('summaryFoodOtAllowance').textContent = `${totalFoodOtAllowance.toLocaleString('th-TH', { minimumFractionDigits: 2 })} ฿`;
+            document.getElementById('summaryNightBaseAllowance').textContent = `${totalNightBaseAllowance.toLocaleString('th-TH', { minimumFractionDigits: 2 })} ฿`;
+            document.getElementById('summaryNightOtAllowance').textContent = `${totalNightOtAllowance.toLocaleString('th-TH', { minimumFractionDigits: 2 })} ฿`;
+
+            document.getElementById('summaryTravelAllowance').textContent = `${totalTravelAllowance.toLocaleString('th-TH', { minimumFractionDigits: 2 })} ฿`;
+            document.getElementById('summaryKpiBonus').textContent = `${monthlyKpiTotal.toLocaleString('th-TH', { minimumFractionDigits: 2 })} ฿`;
+            document.getElementById('summaryDiligenceBonus').textContent = `${diligenceBonusTotal.toLocaleString('th-TH', { minimumFractionDigits: 2 })} ฿`;
+        }
+
+        function openStatsDetailModal() {
+            document.getElementById('statsDetailSubTitle').textContent = document.getElementById('currentMonthYearText').textContent;
+
+            document.getElementById('detailNormalBadge').textContent = `${detailLists.normal.length} วัน`;
+            document.getElementById('detailNormalList').innerHTML = detailLists.normal.length > 0 ? detailLists.normal.join(', ') : '<span class="text-slate-400 italic">ไม่มีรายการ</span>';
+
+            document.getElementById('detailSickLeaveBadge').textContent = `${detailLists.sickLeave.length} วัน`;
+            document.getElementById('detailSickLeaveList').innerHTML = detailLists.sickLeave.length > 0 ? detailLists.sickLeave.join(', ') : '<span class="text-slate-400 italic">ไม่มีรายการ</span>';
+
+            document.getElementById('detailAnnualLeaveBadge').textContent = `${detailLists.annualLeave.length} วัน`;
+            document.getElementById('detailAnnualLeaveList').innerHTML = detailLists.annualLeave.length > 0 ? detailLists.annualLeave.join(', ') : '<span class="text-slate-400 italic">ไม่มีรายการ</span>';
+
+            document.getElementById('detailUnpaidLeaveBadge').textContent = `${detailLists.unpaidLeave.length} วัน`;
+            document.getElementById('detailUnpaidLeaveList').innerHTML = detailLists.unpaidLeave.length > 0 ? detailLists.unpaidLeave.join(', ') : '<span class="text-slate-400 italic">ไม่มีรายการ</span>';
+
+            document.getElementById('detailOt15Badge').textContent = `${detailLists.ot15.length} วัน`;
+            document.getElementById('detailOt15List').innerHTML = detailLists.ot15.length > 0 ? detailLists.ot15.join(', ') : '<span class="text-slate-400 italic">ไม่มีรายการ</span>';
+
+            document.getElementById('detailHolidayBadge').textContent = `${detailLists.holiday.length} วัน`;
+            document.getElementById('detailHolidayList').innerHTML = detailLists.holiday.length > 0 ? detailLists.holiday.join(', ') : '<span class="text-slate-400 italic">ไม่มีรายการ</span>';
+
+            document.getElementById('detailPublicHolidayBadge').textContent = `${detailLists.publicHoliday.length} วัน`;
+            document.getElementById('detailPublicHolidayList').innerHTML = detailLists.publicHoliday.length > 0 ? detailLists.publicHoliday.join(', ') : '<span class="text-slate-400 italic">ไม่มีรายการ</span>';
+
+            document.getElementById('detailOt3Badge').textContent = `${detailLists.ot3.length} ครั้ง`;
+            document.getElementById('detailOt3List').innerHTML = detailLists.ot3.length > 0 ? detailLists.ot3.join(', ') : '<span class="text-slate-400 italic">ไม่มีรายการ</span>';
+
+            document.getElementById('detailNightBadge').textContent = `${detailLists.night.length} วัน`;
+            document.getElementById('detailNightList').innerHTML = detailLists.night.length > 0 ? detailLists.night.join(', ') : '<span class="text-slate-400 italic">ไม่มีรายการ</span>';
+
+            document.getElementById('statsDetailModal').classList.remove('hidden');
+        }
+
+        function closeStatsDetailModal() {
+            document.getElementById('statsDetailModal').classList.add('hidden');
+        }
+
+        function toggleDiligenceBonus(checked) {
+            diligenceSettings[getMonthKey(currentDate)] = checked;
+            saveWorkDataToStorage();
+            renderCalendar();
+        }
+
+        function toggleMonthlyKpiBonus(checked) {
+            monthlyKpiSettings[getMonthKey(currentDate)] = checked;
+            saveWorkDataToStorage();
+            renderCalendar();
+        }
+
+        function openDayModal(dateKey, dayNumber, isHolidayOrSunday, dateObj) {
+            selectedDayKey = dateKey;
+            const [y, m, d] = dateKey.split('-');
+            const data = workData[dateKey] || {};
+            const isPubHol = !!data.isPublicHoliday;
+            const currentIsHoliday = (isHolidayOrSunday || isPubHol);
+
+            const targetDate = dateObj || new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+            const dayName = DAY_NAMES[targetDate.getDay()];
+
+            document.getElementById('modalDateTitle').textContent = `${dayName} ที่ ${dayNumber} ${MONTH_NAMES[parseInt(m) - 1]} ${parseInt(y) + 543}`;
+            document.getElementById('modalDateSub').textContent = isPubHol ? 'วันหยุดนักขัตฤกษ์' : (currentIsHoliday ? 'วันหยุดประจำสัปดาห์ (วันอาทิตย์)' : 'วันทำงานปกติ (จันทร์ - เสาร์)');
+
+            const normalOptions = document.getElementById('normalDayOptions');
+            const sundayOptions = document.getElementById('sundayOptions');
+
+            if (currentIsHoliday) {
+                normalOptions.classList.add('hidden');
+                sundayOptions.classList.remove('hidden');
+            } else {
+                normalOptions.classList.remove('hidden');
+                sundayOptions.classList.add('hidden');
+            }
+
+            document.getElementById('chkWorkday').checked = !!data.workday;
+            document.getElementById('chkSickLeave').checked = !!data.sickLeave || (!!data.leaveDay && !data.annualLeave);
+            document.getElementById('chkAnnualLeave').checked = !!data.annualLeave;
+            document.getElementById('chkUnpaidLeave').checked = !!data.unpaidLeave;
+            document.getElementById('chkOt15').checked = !!data.ot15;
+            document.getElementById('chkHolidayOffPaid').checked = !!data.holidayOffPaid;
+            document.getElementById('chkHolidayWork').checked = !!data.holidayWork;
+            document.getElementById('chkIsPublicHoliday').checked = isPubHol;
+            document.getElementById('chkNightShift').checked = !!data.nightShift;
+            document.getElementById('chkTravel').checked = !!data.hasTravel;
+
+            document.getElementById('inputDayNote').value = data.note || '';
+
+            handleModalOptionChange();
+            document.getElementById('dayModal').classList.remove('hidden');
+        }
+
+        function closeDayModal() {
+            document.getElementById('dayModal').classList.add('hidden');
+            selectedDayKey = null;
+        }
+
+        function setControlDisabledState(chkInput, lblElement, disable) {
+            if (!chkInput) return;
+            chkInput.disabled = disable;
+            if (disable) {
+                chkInput.checked = false;
+                if (lblElement) lblElement.classList.add('opacity-40', 'pointer-events-none');
+            } else {
+                if (lblElement) lblElement.classList.remove('opacity-40', 'pointer-events-none');
+            }
+        }
+
+        function handleModalOptionChange(evt) {
+            if (!selectedDayKey) return;
+            const [yStr, mStr, dStr] = selectedDayKey.split('-');
+            const dateObj = new Date(parseInt(yStr), parseInt(mStr) - 1, parseInt(dStr));
+            const isSunday = (dateObj.getDay() === 0);
+
+            const chkIsPublicHoliday = document.getElementById('chkIsPublicHoliday');
+            const lblIsPublicHoliday = document.getElementById('lblIsPublicHoliday');
+
+            const chkWorkday = document.getElementById('chkWorkday');
+            const lblWorkday = document.getElementById('lblWorkday');
+            
+            const chkSickLeave = document.getElementById('chkSickLeave');
+            const lblSickLeave = document.getElementById('lblSickLeave');
+            
+            const chkAnnualLeave = document.getElementById('chkAnnualLeave');
+            const lblAnnualLeave = document.getElementById('lblAnnualLeave');
+            
+            const chkUnpaidLeave = document.getElementById('chkUnpaidLeave');
+            const lblUnpaidLeave = document.getElementById('lblUnpaidLeave');
+
+            const chkOt15 = document.getElementById('chkOt15');
+            const lblOt15 = document.getElementById('lblOt15');
+
+            const chkTravel = document.getElementById('chkTravel');
+            const lblTravel = document.getElementById('lblTravel');
+            const chkNightShift = document.getElementById('chkNightShift');
+            const lblNightShift = document.getElementById('lblNightShift');
+
+            // เมื่อมีการกดเลือก "มาทำงาน"
+            if (evt && evt.target === chkWorkday && chkWorkday.checked) {
+                chkSickLeave.checked = false;
+                chkAnnualLeave.checked = false;
+                chkUnpaidLeave.checked = false;
+                chkIsPublicHoliday.checked = false;
+            } else if (evt && evt.target === chkSickLeave && chkSickLeave.checked) {
+                chkWorkday.checked = false;
+                chkAnnualLeave.checked = false;
+                chkUnpaidLeave.checked = false;
+            } else if (evt && evt.target === chkAnnualLeave && chkAnnualLeave.checked) {
+                chkWorkday.checked = false;
+                chkSickLeave.checked = false;
+                chkUnpaidLeave.checked = false;
+            } else if (evt && evt.target === chkUnpaidLeave && chkUnpaidLeave.checked) {
+                chkWorkday.checked = false;
+                chkSickLeave.checked = false;
+                chkAnnualLeave.checked = false;
+            } else if (evt && evt.target === chkIsPublicHoliday && chkIsPublicHoliday.checked) {
+                chkWorkday.checked = false;
+                chkSickLeave.checked = false;
+                chkAnnualLeave.checked = false;
+                chkUnpaidLeave.checked = false;
+            }
+
+            const isPubHol = chkIsPublicHoliday.checked;
+            const currentIsHoliday = (isSunday || isPubHol);
+
+            // ปิดช่อง ลาป่วย/ลาพักร้อน/ลากิจ/วันหยุดนักขัตฤกษ์ เมื่อติ๊กมาทำงาน
+            const isWorkdayChecked = chkWorkday.checked;
+            setControlDisabledState(chkSickLeave, lblSickLeave, isWorkdayChecked);
+            setControlDisabledState(chkAnnualLeave, lblAnnualLeave, isWorkdayChecked);
+            setControlDisabledState(chkUnpaidLeave, lblUnpaidLeave, isWorkdayChecked);
+            setControlDisabledState(chkIsPublicHoliday, lblIsPublicHoliday, isWorkdayChecked);
+
+            const isAnyLeave = (chkSickLeave.checked || chkAnnualLeave.checked || chkUnpaidLeave.checked);
+            const disableRestrictedOptions = isAnyLeave || isPubHol;
+
+            setControlDisabledState(chkOt15, lblOt15, disableRestrictedOptions);
+            setControlDisabledState(chkTravel, lblTravel, disableRestrictedOptions);
+            setControlDisabledState(chkNightShift, lblNightShift, disableRestrictedOptions);
+
+            const chkHolidayOffPaid = document.getElementById('chkHolidayOffPaid');
+            const chkHolidayWork = document.getElementById('chkHolidayWork');
+            
+            if (evt && evt.target === chkHolidayOffPaid && chkHolidayOffPaid.checked) {
+                chkHolidayWork.checked = false;
+            } else if (evt && evt.target === chkHolidayWork && chkHolidayWork.checked) {
+                chkHolidayOffPaid.checked = false;
+            }
+
+            const normalOptions = document.getElementById('normalDayOptions');
+            const sundayOptions = document.getElementById('sundayOptions');
+
+            if (currentIsHoliday) {
+                normalOptions.classList.add('hidden');
+                sundayOptions.classList.remove('hidden');
+                document.getElementById('modalDateSub').textContent = isPubHol ? 'วันหยุดนักขัตฤกษ์' : 'วันหยุดประจำสัปดาห์ (วันอาทิตย์)';
+            } else {
+                normalOptions.classList.remove('hidden');
+                sundayOptions.classList.add('hidden');
+                document.getElementById('modalDateSub').textContent = 'วันทำงานปกติ (จันทร์ - เสาร์)';
+            }
+
+            const tempDayData = {
+                workday: chkWorkday.checked,
+                sickLeave: chkSickLeave.checked,
+                annualLeave: chkAnnualLeave.checked,
+                unpaidLeave: chkUnpaidLeave.checked,
+                ot15: chkOt15.checked,
+                holidayOffPaid: chkHolidayOffPaid.checked,
+                holidayWork: chkHolidayWork.checked,
+                isPublicHoliday: isPubHol,
+                nightShift: chkNightShift.checked,
+                hasTravel: chkTravel.checked
+            };
+
+            const calc = calculateDayIncome(tempDayData, currentIsHoliday);
+            document.getElementById('modalCalculatedTotal').textContent = `${calc.total.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท`;
+        }
+
+        function saveDayData() {
+            if (!selectedDayKey) return;
+
+            const workday = document.getElementById('chkWorkday').checked;
+            const sickLeave = document.getElementById('chkSickLeave').checked;
+            const annualLeave = document.getElementById('chkAnnualLeave').checked;
+            const unpaidLeave = document.getElementById('chkUnpaidLeave').checked;
+            const ot15 = document.getElementById('chkOt15').checked;
+            const holidayOffPaid = document.getElementById('chkHolidayOffPaid').checked;
+            const holidayWork = document.getElementById('chkHolidayWork').checked;
+            const isPublicHoliday = document.getElementById('chkIsPublicHoliday').checked;
+            const nightShift = document.getElementById('chkNightShift').checked;
+            const hasTravel = document.getElementById('chkTravel').checked;
+            const note = document.getElementById('inputDayNote').value.trim();
+
+            if (!workday && !sickLeave && !annualLeave && !unpaidLeave && !ot15 && !holidayOffPaid && !holidayWork && !isPublicHoliday && !nightShift && !hasTravel && !note) {
+                delete workData[selectedDayKey];
+            } else {
+                workData[selectedDayKey] = {
+                    workday, sickLeave, annualLeave, unpaidLeave, ot15, holidayOffPaid, holidayWork,
+                    isPublicHoliday, nightShift, hasTravel, note
+                };
+            }
+
+            saveWorkDataToStorage();
+            closeDayModal();
+            renderCalendar();
+        }
+
+        function clearCurrentDay() {
+            if (selectedDayKey && workData[selectedDayKey]) {
+                delete workData[selectedDayKey];
+                saveWorkDataToStorage();
+            }
+            closeDayModal();
+            renderCalendar();
+        }
+
+        function openSettingsModal() {
+            document.getElementById('settingDailyWage').value = currentSettings.dailyWage;
+            document.getElementById('settingFoodBase').value = currentSettings.foodBase;
+            document.getElementById('settingFoodOt').value = currentSettings.foodOt;
+            document.getElementById('settingNightBase').value = currentSettings.nightBase;
+            document.getElementById('settingNightOt').value = currentSettings.nightOt;
+            document.getElementById('settingTravelBase').value = currentSettings.travelBase;
+            document.getElementById('settingDiligence').value = currentSettings.diligenceBonus;
+            document.getElementById('settingKpiMonthly').value = currentSettings.kpiMonthlyBonus;
+            document.getElementById('settingsModal').classList.remove('hidden');
+        }
+
+        function closeSettingsModal() {
+            document.getElementById('settingsModal').classList.add('hidden');
+        }
+
+        function saveSettings() {
+            currentSettings.dailyWage = parseFloat(document.getElementById('settingDailyWage').value) || 0;
+            currentSettings.diligenceBonus = parseFloat(document.getElementById('settingDiligence').value) || 0;
+            currentSettings.kpiMonthlyBonus = parseFloat(document.getElementById('settingKpiMonthly').value) || 0;
+
+            saveSettingsToStorage();
+            closeSettingsModal();
+            renderCalendar();
+        }
+
+        function resetSettingsToDefault() {
+            currentSettings = { ...DEFAULT_SETTINGS };
+            openSettingsModal();
+        }
+
+        function openBackupModal() { document.getElementById('backupModal').classList.remove('hidden'); }
+        function closeBackupModal() { document.getElementById('backupModal').classList.add('hidden'); }
+
+        function exportDataJSON() {
+            const exportObject = {
+                version: "5.3",
+                exportDate: new Date().toISOString(),
+                settings: currentSettings,
+                workData: workData,
+                diligenceSettings: diligenceSettings,
+                monthlyKpiSettings: monthlyKpiSettings
+            };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObject, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `wage_backup_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importDataJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (imported.workData) {
+                        workData = imported.workData;
+                        if (imported.settings) currentSettings = { ...DEFAULT_SETTINGS, ...imported.settings };
+                        if (imported.diligenceSettings) diligenceSettings = imported.diligenceSettings;
+                        if (imported.monthlyKpiSettings) monthlyKpiSettings = imported.monthlyKpiSettings;
+                        saveSettingsToStorage();
+                        saveWorkDataToStorage();
+                        renderCalendar();
+                        alert('นำเข้าข้อมูลเรียบร้อยแล้ว!');
+                        closeBackupModal();
+                    } else { alert('รูปแบบไฟล์ JSON ไม่ถูกต้อง'); }
+                } catch(err) { alert('เกิดข้อผิดพลาดในการอ่านไฟล์ JSON'); }
+            };
+            reader.readAsText(file);
+        }
+    </script>
+</body>
+</html>
