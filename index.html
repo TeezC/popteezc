@@ -305,6 +305,10 @@
                         <span class="text-slate-500 font-medium">KPI:</span>
                         <span id="summaryKpiBonus" class="font-bold text-slate-800">0.00 ฿</span>
                     </div>
+                    <div class="flex justify-between items-center col-span-2">
+                        <span class="text-slate-500 font-medium">เงินอื่นๆ:</span>
+                        <span id="summaryOtherAllowance" class="font-bold text-slate-800">0.00 ฿</span>
+                    </div>
                 </div>
                 <div class="pt-1.5 border-t border-slate-200 flex justify-between items-center text-xs">
                     <span class="text-slate-600 font-medium">เบี้ยขยัน:</span>
@@ -369,12 +373,12 @@
             </div>
             
             <div class="p-5 space-y-3 max-h-[70vh] overflow-y-auto custom-scrollbar">
-                <!-- Public Holiday Checkbox First -->
-                <div>
+                <!-- Public Holiday Checkbox First (จะซ่อนเมื่อเป็นวันอาทิตย์) -->
+                <div id="containerPublicHoliday">
                     <label id="lblIsPublicHoliday" class="flex items-center justify-between p-3 rounded-2xl bg-rose-50/70 border border-rose-200 cursor-pointer hover:bg-rose-50 transition btn-act">
                         <div class="flex items-center space-x-3">
                             <input type="checkbox" id="chkIsPublicHoliday" class="w-4 h-4 text-rose-600 rounded focus:ring-rose-500 bg-slate-100 border-slate-300" onchange="handleModalOptionChange(event)">
-                            <span class="text-xs font-bold text-rose-800"><i class="fa-solid fa-calendar-star text-rose-500 mr-1.5"></i>วันหยุดนักขัตฤกษ์</span>
+                            <span class="text-xs font-bold text-rose-800"><i class="fa-solid fa-calendar-star text-rose-500 mr-1.5"></i> กำหนดให้วันนี้เป็น "วันหยุดนักขัตฤกษ์"</span>
                         </div>
                     </label>
                 </div>
@@ -441,7 +445,7 @@
                         <span id="holidayNoticeText" class="flex items-center gap-2"><i class="fa-solid fa-star text-amber-500"></i> วันหยุดประจำสัปดาห์ / นักขัตฤกษ์</span>
                     </div>
 
-                    <label class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50/80 hover:bg-slate-100/80 border border-slate-200 cursor-pointer transition btn-act">
+                    <label id="lblHolidayOffPaid" class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50/80 hover:bg-slate-100/80 border border-slate-200 cursor-pointer transition btn-act">
                         <div class="flex items-center space-x-3">
                             <input type="checkbox" id="chkHolidayOffPaid" class="w-5 h-5 text-amber-500 rounded focus:ring-amber-500 bg-slate-100 border-slate-300" onchange="handleModalOptionChange(event)">
                             <div>
@@ -451,15 +455,36 @@
                         </div>
                     </label>
 
-                    <label class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50/80 hover:bg-slate-100/80 border border-amber-200 cursor-pointer transition btn-act">
-                        <div class="flex items-center space-x-3">
+                    <div id="lblHolidayWorkContainer" class="p-3.5 rounded-2xl bg-amber-50/30 border border-amber-200 space-y-2">
+                        <label id="lblHolidayWork" class="flex items-center space-x-3 cursor-pointer">
                             <input type="checkbox" id="chkHolidayWork" class="w-5 h-5 text-amber-500 rounded focus:ring-amber-500 bg-slate-100 border-slate-300" onchange="handleModalOptionChange(event)">
-                            <div>
-                                <span class="font-bold text-slate-800 block text-sm">ไปทำงานวันหยุด (8 ชม. แรก + OT 3 อีก 2 ชม.)</span>
-                                <span class="text-xs text-slate-500">8 ชม. แรก: <span class="holiday-wage-val text-amber-600 font-bold">0</span> บ. | OT 3 (2 ชม.): <span class="ot3-val text-orange-600 font-bold">0.00</span> บ.</span>
-                            </div>
+                            <span class="font-bold text-slate-800 text-sm">ไปทำงานวันหยุด</span>
+                        </label>
+                        
+                        <!-- Choice 8 Hours or 10 Hours -->
+                        <div id="holidayHoursContainer" class="pl-8 pt-1 space-y-2 hidden">
+                            <label class="flex items-center justify-between p-2.5 rounded-xl bg-white border border-amber-200 cursor-pointer hover:bg-amber-50/50 transition">
+                                <div class="flex items-center space-x-2.5">
+                                    <input type="radio" name="holidayHours" id="radHoliday8" value="8" class="w-4 h-4 text-amber-600 focus:ring-amber-500" onchange="handleModalOptionChange(event)">
+                                    <div>
+                                        <span class="font-bold text-slate-800 text-xs block">ทำ 8 ชั่วโมง</span>
+                                        <span class="text-[11px] text-slate-500">ค่าแรงวันหยุด: <span class="holiday-wage-val text-amber-600 font-bold">0</span> ฿ + ค่าข้าว <span class="food-base-val text-emerald-600 font-bold">45</span> ฿</span>
+                                    </div>
+                                </div>
+                            </label>
+                            
+                            <label class="flex items-center justify-between p-2.5 rounded-xl bg-white border border-orange-200 cursor-pointer hover:bg-orange-50/50 transition">
+                                <div class="flex items-center space-x-2.5">
+                                    <input type="radio" name="holidayHours" id="radHoliday10" value="10" class="w-4 h-4 text-orange-600 focus:ring-orange-500" onchange="handleModalOptionChange(event)">
+                                    <div>
+                                        <span class="font-bold text-slate-800 text-xs block">ทำ 10 ชั่วโมง (8 ชม. + OT 2 ชม.)</span>
+                                        <span class="text-[11px] text-slate-500">8 ชม.: <span class="holiday-wage-val text-amber-600 font-bold">0</span> ฿ | OT 3 (2 ชม.): <span class="ot3-val text-orange-600 font-bold">0.00</span> ฿</span>
+                                        <span class="text-[10px] text-emerald-600 font-semibold block">+ ได้ค่าข้าว OT (<span class="food-ot-val">35</span> ฿) & ค่ากะ OT</span>
+                                    </div>
+                                </div>
+                            </label>
                         </div>
-                    </label>
+                    </div>
                 </div>
 
                 <!-- Travel Allowance -->
@@ -713,6 +738,11 @@
                         <input type="number" id="settingKpiMonthly" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm text-slate-800 focus:ring-2 focus:ring-purple-500 outline-none transition font-bold" value="1000">
                     </div>
                 </div>
+
+                <div>
+                    <label class="font-bold text-slate-800 block mb-1">อื่นๆ (บาท/เดือน)</label>
+                    <input type="number" id="settingOtherBonus" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-sm text-slate-800 focus:ring-2 focus:ring-sky-500 outline-none transition font-bold" value="0">
+                </div>
             </div>
             <div class="bg-slate-50 p-4 border-t border-slate-100 flex justify-end space-x-2">
                 <button onclick="resetSettingsToDefault()" class="btn-act px-3 py-2 text-xs text-slate-500 hover:text-slate-800 font-medium">คืนค่าเริ่มต้น</button>
@@ -772,7 +802,8 @@
             nightOt: 30,
             travelBase: 40,
             diligenceBonus: 1000,
-            kpiMonthlyBonus: 1000
+            kpiMonthlyBonus: 1000,
+            otherBonus: 0
         };
 
         let currentSettings = { ...DEFAULT_SETTINGS };
@@ -895,15 +926,21 @@
                 if (dayData.holidayOffPaid) wage += currentSettings.dailyWage;
                 if (dayData.holidayWork) {
                     publicHolidayWage += (currentSettings.dailyWage * 2); 
-                    ot3 += (hourlyRate * 3 * 2);
                     foodBase += currentSettings.foodBase;
+                    if (dayData.holidayHours === 10) {
+                        ot3 += (hourlyRate * 3 * 2);
+                        foodOt += currentSettings.foodOt;
+                    }
                 }
             } else if (isHolidayOrSunday) {
                 if (dayData.holidayOffPaid) wage += currentSettings.dailyWage;
                 if (dayData.holidayWork) {
                     holidayWage += (currentSettings.dailyWage * 2); 
-                    ot3 += (hourlyRate * 3 * 2);
                     foodBase += currentSettings.foodBase;
+                    if (dayData.holidayHours === 10) {
+                        ot3 += (hourlyRate * 3 * 2);
+                        foodOt += currentSettings.foodOt;
+                    }
                 }
             } else {
                 if (dayData.workday) {
@@ -922,7 +959,9 @@
 
             if (dayData.nightShift) {
                 nightBase += currentSettings.nightBase;
-                if (!isHolidayOrSunday && !dayData.isPublicHoliday && dayData.ot15) {
+                const hasOt = (!isHolidayOrSunday && !dayData.isPublicHoliday && dayData.ot15) || 
+                              ((isHolidayOrSunday || dayData.isPublicHoliday) && dayData.holidayWork && dayData.holidayHours === 10);
+                if (hasOt) {
                     nightOt += currentSettings.nightOt;
                 }
             }
@@ -1023,10 +1062,11 @@
                 const formattedDateStr = formatDisplayDate(dateObj);
 
                 const dayData = workData[dateKey] || {};
-                const isHolidayOrSunday = (dayOfWeek === 0 || dayData.isPublicHoliday);
+                const isSunday = (dayOfWeek === 0);
+                const isHolidayOrSunday = (isSunday || dayData.isPublicHoliday);
                 const calc = calculateDayIncome(dayData, isHolidayOrSunday);
 
-                if (!dayData.isPublicHoliday && dayOfWeek !== 0) {
+                if (!dayData.isPublicHoliday && !isSunday) {
                     if (dayData.workday) {
                         monthlyNormalWorkdays++;
                         totalBaseWage += calc.wage;
@@ -1054,25 +1094,29 @@
                     }
                 }
 
-                if (dayData.isPublicHoliday) {
+                if (dayData.isPublicHoliday && !isSunday) {
                     if (dayData.holidayWork) {
                         monthlyPublicHolidayWorkdays++;
-                        monthlyOt3Count++;
                         totalPublicHolidayWage += calc.publicHolidayWage;
-                        totalOt3Wage += calc.ot3;
                         detailLists.publicHoliday.push(formattedDateStr);
-                        detailLists.ot3.push(formattedDateStr);
+                        if (dayData.holidayHours === 10) {
+                            monthlyOt3Count++;
+                            totalOt3Wage += calc.ot3;
+                            detailLists.ot3.push(formattedDateStr);
+                        }
                     } else if (dayData.holidayOffPaid) {
                         totalBaseWage += currentSettings.dailyWage;
                     }
-                } else if (dayOfWeek === 0) {
+                } else if (isSunday) {
                     if (dayData.holidayWork) {
                         monthlyHolidayWorkdays++;
-                        monthlyOt3Count++;
                         totalHolidayWage += calc.holidayWage;
-                        totalOt3Wage += calc.ot3;
                         detailLists.holiday.push(formattedDateStr);
-                        detailLists.ot3.push(formattedDateStr);
+                        if (dayData.holidayHours === 10) {
+                            monthlyOt3Count++;
+                            totalOt3Wage += calc.ot3;
+                            detailLists.ot3.push(formattedDateStr);
+                        }
                     } else if (dayData.holidayOffPaid) {
                         totalBaseWage += currentSettings.dailyWage;
                     }
@@ -1095,20 +1139,24 @@
                 const hasRecord = dayData.workday || dayData.sickLeave || dayData.annualLeave || dayData.leaveDay || dayData.unpaidLeave || dayData.ot15 || dayData.holidayWork || dayData.holidayOffPaid || dayData.nightShift || dayData.hasTravel;
 
                 cell.className = `cal-cell ${hasRecord ? 'cal-cell-active' : ''} p-2.5 rounded-2xl min-h-[100px] h-full cursor-pointer flex flex-col justify-between relative ${isToday ? 'ring-2 ring-sky-500 bg-sky-50 shadow-xs' : ''}`;
-                cell.onclick = () => openDayModal(dateKey, day, isHolidayOrSunday, dateObj);
+                cell.onclick = () => openDayModal(dateKey, day, isSunday, dateObj);
 
                 let statusBadgesHtml = '';
-                if (dayData.isPublicHoliday) {
+                if (dayData.isPublicHoliday && !isSunday) {
                     statusBadgesHtml += `<span class="bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-xs">นักขัตฯ</span>`;
                     if (dayData.holidayWork) {
                         statusBadgesHtml += `<span class="bg-rose-100 text-rose-700 text-[10px] font-bold px-1 py-0.5 rounded">OT1</span>`;
-                        statusBadgesHtml += `<span class="bg-orange-100 text-orange-700 text-[10px] font-bold px-1 py-0.5 rounded">OT3</span>`;
+                        if (dayData.holidayHours === 10) {
+                            statusBadgesHtml += `<span class="bg-orange-100 text-orange-700 text-[10px] font-bold px-1 py-0.5 rounded">OT3</span>`;
+                        }
                     }
                 }
-                if (dayOfWeek === 0 && !dayData.isPublicHoliday) {
+                if (isSunday) {
                     if (dayData.holidayWork) {
                         statusBadgesHtml += `<span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-1 py-0.5 rounded">OT2</span>`;
-                        statusBadgesHtml += `<span class="bg-orange-100 text-orange-800 text-[10px] font-bold px-1 py-0.5 rounded">OT3</span>`;
+                        if (dayData.holidayHours === 10) {
+                            statusBadgesHtml += `<span class="bg-orange-100 text-orange-800 text-[10px] font-bold px-1 py-0.5 rounded">OT3</span>`;
+                        }
                     }
                     else if (dayData.holidayOffPaid) statusBadgesHtml += `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-1 py-0.5 rounded">หยุดได้ค่าแรง</span>`;
                 }
@@ -1123,7 +1171,7 @@
                 if (dayData.hasTravel) statusBadgesHtml += `<span class="bg-teal-100 text-teal-800 text-[10px] font-bold px-1 py-0.5 rounded" title="ค่าเดินทาง"><i class="fa-solid fa-van-shuttle"></i></span>`;
                 if (dayData.nightShift) statusBadgesHtml += `<span class="bg-indigo-100 text-indigo-800 text-[10px] font-bold px-1 py-0.5 rounded"><i class="fa-solid fa-moon"></i></span>`;
 
-                const dayNumColor = (dayOfWeek === 0 || dayData.isPublicHoliday) ? 'text-rose-500 font-bold' : (dayOfWeek === 6 ? 'text-sky-600 font-bold' : 'text-slate-700 font-semibold');
+                const dayNumColor = (isSunday || dayData.isPublicHoliday) ? 'text-rose-500 font-bold' : (dayOfWeek === 6 ? 'text-sky-600 font-bold' : 'text-slate-700 font-semibold');
                 let monthLabelIndicator = `<span class="text-[10px] text-slate-400 font-normal ml-1">${MONTH_NAMES[m].substring(0, 3)}</span>`;
 
                 cell.innerHTML = `
@@ -1161,11 +1209,12 @@
             const hasDisqualifyingLeave = (monthlyUnpaidLeaveDays > 0 || monthlySickLeaveDays > 0);
             const diligenceBonusTotal = (isDiligenceChecked && !hasDisqualifyingLeave) ? (currentSettings.diligenceBonus || 0) : 0;
             const monthlyKpiTotal = isMonthlyKpiChecked ? (currentSettings.kpiMonthlyBonus || 0) : 0;
+            const otherBonusTotal = currentSettings.otherBonus || 0;
 
             const totalFoodAllowance = totalFoodBaseAllowance + totalFoodOtAllowance;
             const totalNightAllowance = totalNightBaseAllowance + totalNightOtAllowance;
 
-            const totalNetIncome = totalBaseWage + totalHolidayWage + totalPublicHolidayWage + totalOt15Wage + totalOt3Wage + totalFoodAllowance + totalNightAllowance + totalTravelAllowance + monthlyKpiTotal + diligenceBonusTotal;
+            const totalNetIncome = totalBaseWage + totalHolidayWage + totalPublicHolidayWage + totalOt15Wage + totalOt3Wage + totalFoodAllowance + totalNightAllowance + totalTravelAllowance + monthlyKpiTotal + diligenceBonusTotal + otherBonusTotal;
 
             document.getElementById('summaryTotalNet').textContent = totalNetIncome.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             
@@ -1196,6 +1245,7 @@
 
             document.getElementById('summaryTravelAllowance').textContent = `${totalTravelAllowance.toLocaleString('th-TH', { minimumFractionDigits: 2 })} ฿`;
             document.getElementById('summaryKpiBonus').textContent = `${monthlyKpiTotal.toLocaleString('th-TH', { minimumFractionDigits: 2 })} ฿`;
+            document.getElementById('summaryOtherAllowance').textContent = `${otherBonusTotal.toLocaleString('th-TH', { minimumFractionDigits: 2 })} ฿`;
             document.getElementById('summaryDiligenceBonus').textContent = `${diligenceBonusTotal.toLocaleString('th-TH', { minimumFractionDigits: 2 })} ฿`;
         }
 
@@ -1248,21 +1298,32 @@
             renderCalendar();
         }
 
-        function openDayModal(dateKey, dayNumber, isHolidayOrSunday, dateObj) {
+        function openDayModal(dateKey, dayNumber, isSunday, dateObj) {
             selectedDayKey = dateKey;
             const [y, m, d] = dateKey.split('-');
             const data = workData[dateKey] || {};
-            const isPubHol = !!data.isPublicHoliday;
-            const currentIsHoliday = (isHolidayOrSunday || isPubHol);
-
+            
             const targetDate = dateObj || new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
             const dayName = DAY_NAMES[targetDate.getDay()];
+            const isSundayDay = (targetDate.getDay() === 0);
+
+            // หากเป็นวันอาทิตย์ บังคับให้ไม่ใช่วันหยุดนักขัตฤกษ์
+            const isPubHol = isSundayDay ? false : !!data.isPublicHoliday;
+            const currentIsHoliday = (isSundayDay || isPubHol);
 
             document.getElementById('modalDateTitle').textContent = `${dayName} ที่ ${dayNumber} ${MONTH_NAMES[parseInt(m) - 1]} ${parseInt(y) + 543}`;
-            document.getElementById('modalDateSub').textContent = isPubHol ? 'วันหยุดนักขัตฤกษ์' : (currentIsHoliday ? 'วันหยุดประจำสัปดาห์ (วันอาทิตย์)' : 'วันทำงานปกติ (จันทร์ - เสาร์)');
+            document.getElementById('modalDateSub').textContent = isPubHol ? 'วันหยุดนักขัตฤกษ์' : (isSundayDay ? 'วันหยุดประจำสัปดาห์ (วันอาทิตย์)' : 'วันทำงานปกติ (จันทร์ - เสาร์)');
 
             const normalOptions = document.getElementById('normalDayOptions');
             const sundayOptions = document.getElementById('sundayOptions');
+            const containerPublicHoliday = document.getElementById('containerPublicHoliday');
+
+            // ซ่อนหัวข้อวันหยุดนักขัตฤกษ์ถ้าเป็นวันอาทิตย์
+            if (isSundayDay) {
+                containerPublicHoliday.classList.add('hidden');
+            } else {
+                containerPublicHoliday.classList.remove('hidden');
+            }
 
             if (currentIsHoliday) {
                 normalOptions.classList.add('hidden');
@@ -1279,6 +1340,14 @@
             document.getElementById('chkOt15').checked = !!data.ot15;
             document.getElementById('chkHolidayOffPaid').checked = !!data.holidayOffPaid;
             document.getElementById('chkHolidayWork').checked = !!data.holidayWork;
+            
+            const holidayHours = data.holidayHours || 8;
+            if (holidayHours === 10) {
+                document.getElementById('radHoliday10').checked = true;
+            } else {
+                document.getElementById('radHoliday8').checked = true;
+            }
+
             document.getElementById('chkIsPublicHoliday').checked = isPubHol;
             document.getElementById('chkNightShift').checked = !!data.nightShift;
             document.getElementById('chkTravel').checked = !!data.hasTravel;
@@ -1313,6 +1382,7 @@
 
             const chkIsPublicHoliday = document.getElementById('chkIsPublicHoliday');
             const lblIsPublicHoliday = document.getElementById('lblIsPublicHoliday');
+            const containerPublicHoliday = document.getElementById('containerPublicHoliday');
 
             const chkWorkday = document.getElementById('chkWorkday');
             const lblWorkday = document.getElementById('lblWorkday');
@@ -1329,61 +1399,115 @@
             const chkOt15 = document.getElementById('chkOt15');
             const lblOt15 = document.getElementById('lblOt15');
 
+            const chkHolidayOffPaid = document.getElementById('chkHolidayOffPaid');
+            const lblHolidayOffPaid = document.getElementById('lblHolidayOffPaid');
+
+            const chkHolidayWork = document.getElementById('chkHolidayWork');
+            const lblHolidayWorkContainer = document.getElementById('lblHolidayWorkContainer');
+
             const chkTravel = document.getElementById('chkTravel');
             const lblTravel = document.getElementById('lblTravel');
+            
             const chkNightShift = document.getElementById('chkNightShift');
             const lblNightShift = document.getElementById('lblNightShift');
 
-            // เมื่อมีการกดเลือก "มาทำงาน"
-            if (evt && evt.target === chkWorkday && chkWorkday.checked) {
-                chkSickLeave.checked = false;
-                chkAnnualLeave.checked = false;
-                chkUnpaidLeave.checked = false;
+            // ซ่อน/เปิดการแสดงผลของคอนเทนเนอร์วันหยุดนักขัตฤกษ์สำหรับวันอาทิตย์
+            if (isSunday) {
+                containerPublicHoliday.classList.add('hidden');
                 chkIsPublicHoliday.checked = false;
-            } else if (evt && evt.target === chkSickLeave && chkSickLeave.checked) {
-                chkWorkday.checked = false;
-                chkAnnualLeave.checked = false;
-                chkUnpaidLeave.checked = false;
-            } else if (evt && evt.target === chkAnnualLeave && chkAnnualLeave.checked) {
-                chkWorkday.checked = false;
-                chkSickLeave.checked = false;
-                chkUnpaidLeave.checked = false;
-            } else if (evt && evt.target === chkUnpaidLeave && chkUnpaidLeave.checked) {
-                chkWorkday.checked = false;
-                chkSickLeave.checked = false;
-                chkAnnualLeave.checked = false;
-            } else if (evt && evt.target === chkIsPublicHoliday && chkIsPublicHoliday.checked) {
-                chkWorkday.checked = false;
-                chkSickLeave.checked = false;
-                chkAnnualLeave.checked = false;
-                chkUnpaidLeave.checked = false;
+            } else {
+                containerPublicHoliday.classList.remove('hidden');
             }
 
-            const isPubHol = chkIsPublicHoliday.checked;
-            const currentIsHoliday = (isSunday || isPubHol);
+            const target = evt ? evt.target : null;
 
-            // ปิดช่อง ลาป่วย/ลาพักร้อน/ลากิจ/วันหยุดนักขัตฤกษ์ เมื่อติ๊กมาทำงาน
-            const isWorkdayChecked = chkWorkday.checked;
-            setControlDisabledState(chkSickLeave, lblSickLeave, isWorkdayChecked);
-            setControlDisabledState(chkAnnualLeave, lblAnnualLeave, isWorkdayChecked);
-            setControlDisabledState(chkUnpaidLeave, lblUnpaidLeave, isWorkdayChecked);
-            setControlDisabledState(chkIsPublicHoliday, lblIsPublicHoliday, isWorkdayChecked);
+            // ตรวจสอบการเลือกติ๊กฝั่งวันทำงานปกติ
+            if (target === chkWorkday && chkWorkday.checked) {
+                chkSickLeave.checked = false;
+                chkAnnualLeave.checked = false;
+                chkUnpaidLeave.checked = false;
+            } else if (target === chkSickLeave && chkSickLeave.checked) {
+                chkWorkday.checked = false;
+                chkAnnualLeave.checked = false;
+                chkUnpaidLeave.checked = false;
+                chkOt15.checked = false;
+            } else if (target === chkAnnualLeave && chkAnnualLeave.checked) {
+                chkWorkday.checked = false;
+                chkSickLeave.checked = false;
+                chkUnpaidLeave.checked = false;
+                chkOt15.checked = false;
+            } else if (target === chkUnpaidLeave && chkUnpaidLeave.checked) {
+                chkWorkday.checked = false;
+                chkSickLeave.checked = false;
+                chkAnnualLeave.checked = false;
+                chkOt15.checked = false;
+            }
 
-            const isAnyLeave = (chkSickLeave.checked || chkAnnualLeave.checked || chkUnpaidLeave.checked);
-            const disableRestrictedOptions = isAnyLeave || isPubHol;
-
-            setControlDisabledState(chkOt15, lblOt15, disableRestrictedOptions);
-            setControlDisabledState(chkTravel, lblTravel, disableRestrictedOptions);
-            setControlDisabledState(chkNightShift, lblNightShift, disableRestrictedOptions);
-
-            const chkHolidayOffPaid = document.getElementById('chkHolidayOffPaid');
-            const chkHolidayWork = document.getElementById('chkHolidayWork');
-            
-            if (evt && evt.target === chkHolidayOffPaid && chkHolidayOffPaid.checked) {
+            // ตรวจสอบตัวเลือกวันหยุด (วันอาทิตย์ / วันหยุดนักขัตฤกษ์)
+            if (target === chkHolidayOffPaid && chkHolidayOffPaid.checked) {
                 chkHolidayWork.checked = false;
-            } else if (evt && evt.target === chkHolidayWork && chkHolidayWork.checked) {
+            } else if (target === chkHolidayWork && chkHolidayWork.checked) {
                 chkHolidayOffPaid.checked = false;
             }
+
+            // ถ้ามีการเปลี่ยนสถานะวันหยุดนักขัตฤกษ์ ให้ล้างค่าข้ามฝั่ง
+            if (target === chkIsPublicHoliday) {
+                if (chkIsPublicHoliday.checked) {
+                    chkWorkday.checked = false;
+                    chkSickLeave.checked = false;
+                    chkAnnualLeave.checked = false;
+                    chkUnpaidLeave.checked = false;
+                    chkOt15.checked = false;
+                } else {
+                    chkHolidayOffPaid.checked = false;
+                    chkHolidayWork.checked = false;
+                }
+            }
+
+            const isPubHol = isSunday ? false : chkIsPublicHoliday.checked;
+            const currentIsHoliday = (isSunday || isPubHol);
+
+            // จัดการสถานะการเปิด/ปิด (Enable/Disable) ตามกฎธุรกิจ
+            const isAnyLeave = (chkSickLeave.checked || chkAnnualLeave.checked || chkUnpaidLeave.checked);
+
+            if (!currentIsHoliday) {
+                // วันปกติ (จันทร์ - เสาร์)
+                setControlDisabledState(chkSickLeave, lblSickLeave, chkWorkday.checked);
+                setControlDisabledState(chkAnnualLeave, lblAnnualLeave, chkWorkday.checked);
+                setControlDisabledState(chkUnpaidLeave, lblUnpaidLeave, chkWorkday.checked);
+                
+                // ติ๊กลาอย่างใดอย่างหนึ่ง ให้ปิดหัวข้ออื่น
+                setControlDisabledState(chkWorkday, lblWorkday, isAnyLeave);
+                setControlDisabledState(chkIsPublicHoliday, lblIsPublicHoliday, isAnyLeave || chkWorkday.checked);
+                setControlDisabledState(chkOt15, lblOt15, isAnyLeave || !chkWorkday.checked);
+                setControlDisabledState(chkTravel, lblTravel, isAnyLeave);
+                setControlDisabledState(chkNightShift, lblNightShift, isAnyLeave);
+            } else {
+                // วันอาทิตย์ หรือ วันหยุดนักขัตฤกษ์
+                if (isSunday) {
+                    // วันอาทิตย์: ปิดการใช้งานตัวเลือก "หยุดได้ค่าแรง"
+                    setControlDisabledState(chkHolidayOffPaid, lblHolidayOffPaid, true);
+                } else {
+                    // วันหยุดนักขัตฤกษ์: สลับการใช้งานตามปกติ
+                    setControlDisabledState(chkHolidayOffPaid, lblHolidayOffPaid, chkHolidayWork.checked);
+                }
+                setControlDisabledState(chkHolidayWork, lblHolidayWorkContainer, chkHolidayOffPaid.checked);
+
+                // หากเลือกหยุด จะปิดการเลือกค่าเดินทางและค่ากะดึก
+                const disableTravelAndNight = chkHolidayOffPaid.checked || !chkHolidayWork.checked;
+                setControlDisabledState(chkTravel, lblTravel, disableTravelAndNight);
+                setControlDisabledState(chkNightShift, lblNightShift, disableTravelAndNight);
+            }
+
+            // แสดง/ซ่อน เมนูชั่วโมงทำงาน OT สำหรับวันหยุด
+            const holidayHoursContainer = document.getElementById('holidayHoursContainer');
+            if (chkHolidayWork.checked && currentIsHoliday) {
+                holidayHoursContainer.classList.remove('hidden');
+            } else {
+                holidayHoursContainer.classList.add('hidden');
+            }
+
+            const selectedHolidayHours = document.querySelector('input[name="holidayHours"]:checked')?.value === '10' ? 10 : 8;
 
             const normalOptions = document.getElementById('normalDayOptions');
             const sundayOptions = document.getElementById('sundayOptions');
@@ -1406,6 +1530,7 @@
                 ot15: chkOt15.checked,
                 holidayOffPaid: chkHolidayOffPaid.checked,
                 holidayWork: chkHolidayWork.checked,
+                holidayHours: selectedHolidayHours,
                 isPublicHoliday: isPubHol,
                 nightShift: chkNightShift.checked,
                 hasTravel: chkTravel.checked
@@ -1418,6 +1543,10 @@
         function saveDayData() {
             if (!selectedDayKey) return;
 
+            const [yStr, mStr, dStr] = selectedDayKey.split('-');
+            const dateObj = new Date(parseInt(yStr), parseInt(mStr) - 1, parseInt(dStr));
+            const isSunday = (dateObj.getDay() === 0);
+
             const workday = document.getElementById('chkWorkday').checked;
             const sickLeave = document.getElementById('chkSickLeave').checked;
             const annualLeave = document.getElementById('chkAnnualLeave').checked;
@@ -1425,7 +1554,11 @@
             const ot15 = document.getElementById('chkOt15').checked;
             const holidayOffPaid = document.getElementById('chkHolidayOffPaid').checked;
             const holidayWork = document.getElementById('chkHolidayWork').checked;
-            const isPublicHoliday = document.getElementById('chkIsPublicHoliday').checked;
+            const holidayHours = document.querySelector('input[name="holidayHours"]:checked')?.value === '10' ? 10 : 8;
+            
+            // หากเป็นวันอาทิตย์ บังคับตัดสถานะวันหยุดนักขัตฤกษ์ออก
+            const isPublicHoliday = isSunday ? false : document.getElementById('chkIsPublicHoliday').checked;
+            
             const nightShift = document.getElementById('chkNightShift').checked;
             const hasTravel = document.getElementById('chkTravel').checked;
             const note = document.getElementById('inputDayNote').value.trim();
@@ -1434,7 +1567,7 @@
                 delete workData[selectedDayKey];
             } else {
                 workData[selectedDayKey] = {
-                    workday, sickLeave, annualLeave, unpaidLeave, ot15, holidayOffPaid, holidayWork,
+                    workday, sickLeave, annualLeave, unpaidLeave, ot15, holidayOffPaid, holidayWork, holidayHours,
                     isPublicHoliday, nightShift, hasTravel, note
                 };
             }
@@ -1462,6 +1595,7 @@
             document.getElementById('settingTravelBase').value = currentSettings.travelBase;
             document.getElementById('settingDiligence').value = currentSettings.diligenceBonus;
             document.getElementById('settingKpiMonthly').value = currentSettings.kpiMonthlyBonus;
+            document.getElementById('settingOtherBonus').value = currentSettings.otherBonus || 0;
             document.getElementById('settingsModal').classList.remove('hidden');
         }
 
@@ -1473,6 +1607,7 @@
             currentSettings.dailyWage = parseFloat(document.getElementById('settingDailyWage').value) || 0;
             currentSettings.diligenceBonus = parseFloat(document.getElementById('settingDiligence').value) || 0;
             currentSettings.kpiMonthlyBonus = parseFloat(document.getElementById('settingKpiMonthly').value) || 0;
+            currentSettings.otherBonus = parseFloat(document.getElementById('settingOtherBonus').value) || 0;
 
             saveSettingsToStorage();
             closeSettingsModal();
@@ -1489,7 +1624,7 @@
 
         function exportDataJSON() {
             const exportObject = {
-                version: "5.3",
+                version: "5.5",
                 exportDate: new Date().toISOString(),
                 settings: currentSettings,
                 workData: workData,
