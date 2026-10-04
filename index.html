@@ -289,6 +289,10 @@
                         <span class="text-slate-500 font-medium">ค่าข้าว OT:</span>
                         <span id="summaryFoodOtAllowance" class="font-bold text-slate-800">0.00 ฿</span>
                     </div>
+                    <div class="flex justify-between items-center col-span-2 text-emerald-700 bg-emerald-50/60 px-1.5 py-0.5 rounded">
+                        <span class="font-medium">รวมค่าข้าว (ปกติ+OT):</span>
+                        <span id="summaryTotalFoodAllowance" class="font-bold">0.00 ฿</span>
+                    </div>
                     <div class="flex justify-between items-center">
                         <span class="text-slate-500 font-medium">กะดึกปกติ:</span>
                         <span id="summaryNightBaseAllowance" class="font-bold text-slate-800">0.00 ฿</span>
@@ -296,6 +300,10 @@
                     <div class="flex justify-between items-center">
                         <span class="text-slate-500 font-medium">ค่ากะ OT:</span>
                         <span id="summaryNightOtAllowance" class="font-bold text-slate-800">0.00 ฿</span>
+                    </div>
+                    <div class="flex justify-between items-center col-span-2 text-indigo-700 bg-indigo-50/60 px-1.5 py-0.5 rounded">
+                        <span class="font-medium">รวมค่ากะ (ปกติ+OT):</span>
+                        <span id="summaryTotalNightAllowance" class="font-bold">0.00 ฿</span>
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-slate-500 font-medium">ค่าเดินทาง:</span>
@@ -1240,8 +1248,11 @@
 
             document.getElementById('summaryFoodBaseAllowance').textContent = `${totalFoodBaseAllowance.toLocaleString('th-TH', { minimumFractionDigits: 2 })} ฿`;
             document.getElementById('summaryFoodOtAllowance').textContent = `${totalFoodOtAllowance.toLocaleString('th-TH', { minimumFractionDigits: 2 })} ฿`;
+            document.getElementById('summaryTotalFoodAllowance').textContent = `${totalFoodAllowance.toLocaleString('th-TH', { minimumFractionDigits: 2 })} ฿`;
+            
             document.getElementById('summaryNightBaseAllowance').textContent = `${totalNightBaseAllowance.toLocaleString('th-TH', { minimumFractionDigits: 2 })} ฿`;
             document.getElementById('summaryNightOtAllowance').textContent = `${totalNightOtAllowance.toLocaleString('th-TH', { minimumFractionDigits: 2 })} ฿`;
+            document.getElementById('summaryTotalNightAllowance').textContent = `${totalNightAllowance.toLocaleString('th-TH', { minimumFractionDigits: 2 })} ฿`;
 
             document.getElementById('summaryTravelAllowance').textContent = `${totalTravelAllowance.toLocaleString('th-TH', { minimumFractionDigits: 2 })} ฿`;
             document.getElementById('summaryKpiBonus').textContent = `${monthlyKpiTotal.toLocaleString('th-TH', { minimumFractionDigits: 2 })} ฿`;
