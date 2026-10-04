@@ -85,7 +85,7 @@
                 </div>
                 <div>
                     <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-800">
-                        ระบบลงเวลาทำงานและคำนวณค่าแรง
+                        ลงเวลาทำงานและคำนวณค่าแรง
                     </h1>
                     <p class="text-xs text-slate-500 font-medium hidden sm:block">Designed & Developed by PopTeezC</p>
                 </div>
@@ -195,7 +195,7 @@
             <!-- Stats Card -->
             <div onclick="openStatsDetailModal()" class="liquid-glass-card rounded-3xl p-4 sm:p-5 flex flex-col justify-between cursor-pointer group relative overflow-hidden">
                 <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] bg-sky-500 text-white font-bold px-2 py-0.5 rounded-full shadow-xs">
-                    คลิกเพื่อดูวัน <i class="fa-solid fa-arrow-up-right-from-square ml-0.5"></i>
+                    คลิกเพื่อดูรายละเอียด <i class="fa-solid fa-arrow-up-right-from-square ml-0.5"></i>
                 </div>
                 <div class="flex items-center justify-between pb-2 border-b border-slate-200">
                     <span class="text-xs font-bold text-slate-600 uppercase tracking-wider group-hover:text-sky-600 transition">สถิติวันทำงาน & OT</span>
@@ -232,7 +232,7 @@
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-slate-500 font-medium">OT 3:</span>
-                        <span id="statOt3Count" class="font-bold text-slate-800">0 ครั้ง</span>
+                        <span id="statOt3Count" class="font-bold text-slate-800">0 วัน</span>
                     </div>
                     <div class="flex justify-between items-center col-span-2">
                         <span class="text-slate-500 font-medium">เข้ากะดึก:</span>
@@ -240,7 +240,7 @@
                     </div>
                 </div>
                 <div class="pt-2 border-t border-slate-200 text-[11px] text-sky-600 font-bold flex items-center justify-center gap-1">
-                    <i class="fa-solid fa-list-check"></i> ดูรายละเอียดวันที่ทำรายการ
+                    <i class="fa-solid fa-list-check"></i> ดูรายละเอียด
                 </div>
             </div>
 
@@ -378,7 +378,7 @@
                     <label id="lblIsPublicHoliday" class="flex items-center justify-between p-3 rounded-2xl bg-rose-50/70 border border-rose-200 cursor-pointer hover:bg-rose-50 transition btn-act">
                         <div class="flex items-center space-x-3">
                             <input type="checkbox" id="chkIsPublicHoliday" class="w-4 h-4 text-rose-600 rounded focus:ring-rose-500 bg-slate-100 border-slate-300" onchange="handleModalOptionChange(event)">
-                            <span class="text-xs font-bold text-rose-800"><i class="fa-solid fa-calendar-star text-rose-500 mr-1.5"></i> กำหนดให้วันนี้เป็น "วันหยุดนักขัตฤกษ์"</span>
+                            <span class="text-xs font-bold text-rose-800"><i class="fa-solid fa-calendar-star text-rose-500 mr-1.5"></i>วันหยุดนักขัตฤกษ์</span>
                         </div>
                     </label>
                 </div>
@@ -639,7 +639,7 @@
                         <span class="font-bold text-xs text-orange-700 flex items-center gap-1.5">
                             <span class="w-2.5 h-2.5 rounded-full bg-orange-500"></span> OT 3 (หลัง 8 ชม. ในวันหยุด)
                         </span>
-                        <span id="detailOt3Badge" class="text-xs font-bold text-orange-800 bg-orange-50 px-2 py-0.5 rounded-lg border border-orange-200">0 ครั้ง</span>
+                        <span id="detailOt3Badge" class="text-xs font-bold text-orange-800 bg-orange-50 px-2 py-0.5 rounded-lg border border-orange-200">0 วัน</span>
                     </div>
                     <p id="detailOt3List" class="text-xs text-slate-600 leading-relaxed font-medium">ไม่มีรายการ</p>
                 </div>
@@ -1229,7 +1229,7 @@
             document.getElementById('statHolidayWorkdays').textContent = `${monthlyHolidayWorkdays} วัน`;
             document.getElementById('statPublicHolidayWorkdays').textContent = `${monthlyPublicHolidayWorkdays} วัน`;
             document.getElementById('statOt15Count').textContent = `${monthlyOt15Count} วัน`;
-            document.getElementById('statOt3Count').textContent = `${monthlyOt3Count} ครั้ง`;
+            document.getElementById('statOt3Count').textContent = `${monthlyOt3Count} วัน`;
             document.getElementById('statNightShiftCount').textContent = `${monthlyNightShiftCount} วัน`;
 
             document.getElementById('summaryBaseWage').textContent = `${totalBaseWage.toLocaleString('th-TH', { minimumFractionDigits: 2 })} ฿`;
@@ -1273,7 +1273,7 @@
             document.getElementById('detailPublicHolidayBadge').textContent = `${detailLists.publicHoliday.length} วัน`;
             document.getElementById('detailPublicHolidayList').innerHTML = detailLists.publicHoliday.length > 0 ? detailLists.publicHoliday.join(', ') : '<span class="text-slate-400 italic">ไม่มีรายการ</span>';
 
-            document.getElementById('detailOt3Badge').textContent = `${detailLists.ot3.length} ครั้ง`;
+            document.getElementById('detailOt3Badge').textContent = `${detailLists.ot3.length} วัน`;
             document.getElementById('detailOt3List').innerHTML = detailLists.ot3.length > 0 ? detailLists.ot3.join(', ') : '<span class="text-slate-400 italic">ไม่มีรายการ</span>';
 
             document.getElementById('detailNightBadge').textContent = `${detailLists.night.length} วัน`;
